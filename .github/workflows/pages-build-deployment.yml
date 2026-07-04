@@ -1,0 +1,63 @@
+name: pages-build-deployment
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # If you already have build steps, replace this placeholder with them
+      - name: Build site (placeholder)
+        run: |
+          echo "No build steps defined in this workflow. If your project needs a build, replace this step."
+          # Example build:
+          # npm ci
+          # npm run build
+
+      - name: Unpack artifact.tar if present and verify site
+        run: |
+          set -e
+          # If artifact.tar exists, extract it to ./site; otherwise use ./build as fallback
+          if [ -f artifact.tar ]; then
+            echo "Found artifact.tar — extracting to ./site"
+            rm -rf ./site
+            mkdir -p ./site
+            tar -xf artifact.tar -C ./site
+            BUILD_DIR=./site
+          else
+            BUILD_DIR=./build   # <-- change to ./dist or ./_site if your build outputs elsewhere
+          fi
+
+          echo "BUILD_DIR=$BUILD_DIR"
+          if [ ! -d "$BUILD_DIR" ]; then
+            echo "ERROR: Build dir $BUILD_DIR does not exist"
+            ls -la
+            exit 1
+          fi
+
+          echo "Top-level listing of $BUILD_DIR:"
+          ls -la "$BUILD_DIR" || true
+          echo "First files (recursive):"
+          find "$BUILD_DIR" -type f | sed -n '1,200p' || true
+
+          if [ ! -f "$BUILD_DIR/index.html" ]; then
+            echo "ERROR: index.html not found in $BUILD_DIR — deployment will fail"
+            exit 1
+          fi
+          echo "Build verification OK — uploading $BUILD_DIR"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./site   # change to ./build or ./dist if you set BUILD_DIR above
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v5
