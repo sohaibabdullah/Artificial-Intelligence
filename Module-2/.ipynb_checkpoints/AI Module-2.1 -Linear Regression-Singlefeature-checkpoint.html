@@ -1,0 +1,2215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module-2.1 - Linear Regression – Single Feature</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<!-- MathJax for rendering equations -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #faf9f6;
+  --card: #ffffff;
+  --ink: #1a1814;
+  --ink2: #4a4740;
+  --ink3: #8a8680;
+  --line: #e8e5df;
+  --accent: #c84b2f;
+  --accent2: #2563eb;
+  --accent3: #059669;
+  --accent4: #7c3aed;
+  --yellow: #f59e0b;
+  --code-bg: #f0ede6;
+  --serif: 'Lora', Georgia, serif;
+  --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
+  --r: 12px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.75;
+  font-size: 16px;
+}
+.page { max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* ── Hero ── */
+.hero {
+  padding: 72px 0 56px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 64px;
+}
+.hero-tag {
+  font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--accent); border: 1px solid var(--accent); border-radius: 40px;
+  padding: 4px 14px; display: inline-block; margin-bottom: 24px;
+}
+.hero h1 {
+  font-family: var(--serif); font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700; line-height: 1.2; margin-bottom: 20px; color: var(--ink);
+}
+.hero p { font-size: 1.1rem; color: var(--ink2); max-width: 580px; line-height: 1.8; }
+.toc {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px; margin-top: 40px;
+}
+.toc a {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 12px 16px; text-decoration: none; font-size: 13px; font-weight: 500;
+  color: var(--ink2); display: flex; align-items: center; gap: 8px;
+  transition: border-color .2s, color .2s, transform .15s;
+}
+.toc a:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.toc-num { font-family: var(--mono); font-size: 11px; color: var(--ink3); min-width: 18px; }
+
+/* ── Sections ── */
+.section { margin-bottom: 80px; }
+.section-label {
+  font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: .1em;
+  text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+h2 {
+  font-family: var(--serif); font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700; margin-bottom: 20px; line-height: 1.3;
+}
+h3 { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; margin: 32px 0 12px; color: var(--ink); }
+p { color: var(--ink2); margin-bottom: 16px; }
+p:last-child { margin-bottom: 0; }
+strong { color: var(--ink); font-weight: 600; }
+
+/* ── Callout boxes ── */
+.callout {
+  border-left: 3px solid var(--accent); background: #fef6f4;
+  border-radius: 0 var(--r) var(--r) 0; padding: 18px 22px; margin: 24px 0;
+}
+.callout.blue { border-color: var(--accent2); background: #eff6ff; }
+.callout.green { border-color: var(--accent3); background: #ecfdf5; }
+.callout.purple { border-color: var(--accent4); background: #f5f3ff; }
+.callout-title { font-weight: 700; font-size: 13px; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 8px; }
+.callout.blue .callout-title { color: var(--accent2); }
+.callout.green .callout-title { color: var(--accent3); }
+.callout.purple .callout-title { color: var(--accent4); }
+.callout p { color: var(--ink); margin-bottom: 0; font-size: 15px; }
+
+/* ── Equation blocks ── */
+
+.eq-block {
+  background: var(--code-bg); border-radius: var(--r); padding: 20px 28px;
+  margin: 20px 0; font-family: var(--mono); font-size: 1.1rem; text-align: center;
+  border: 1px solid var(--line); overflow-x: auto;
+}
+.eq-block .eq-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--ink3);
+  display: block; margin-bottom: 8px; font-family: var(--sans);
+}
+.eq-block .eq-main { font-size: 1.3rem; color: var(--ink); font-weight: 500; }
+.eq-block .eq-note { font-size: 12px; color: var(--ink3); margin-top: 10px; font-family: var(--sans); }
+.sub-eqs { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+.sub-eq {
+  flex: 1; min-width: 200px; background: var(--code-bg); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 14px 18px; text-align: center;
+  font-family: var(--mono); font-size: 1.05rem;
+}
+.sub-eq .var-name { font-size: 11px; color: var(--ink3); font-family: var(--sans); display: block; margin-bottom: 4px; }
+.equation-box {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+/* ── Diagram cards ── */
+.diagram-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 28px; margin: 28px 0; box-shadow: var(--shadow); overflow: hidden;
+}
+.diagram-card figcaption {
+  font-size: 13px; color: var(--ink3); text-align: center; margin-top: 14px;
+  font-style: italic;
+}
+
+/* ── Scatter / chart canvas ── */
+canvas { display: block; }
+
+/* ── Step cards ── */
+.steps { display: flex; flex-direction: column; gap: 0; margin: 28px 0; }
+.step {
+  display: flex; gap: 20px; position: relative; padding-bottom: 32px;
+}
+.step:last-child { padding-bottom: 0; }
+.step-line {
+  display: flex; flex-direction: column; align-items: center;
+}
+.step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); color: white; font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-family: var(--mono);
+}
+.step-connector { width: 2px; flex: 1; background: var(--line); margin-top: 8px; }
+.step:last-child .step-connector { display: none; }
+.step-body { padding-top: 4px; flex: 1; }
+.step-body h4 { font-weight: 700; font-size: 1rem; margin-bottom: 8px; color: var(--ink); }
+.step-body p { font-size: 15px; color: var(--ink2); margin-bottom: 0; }
+
+/* ── Var table ── */
+.var-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+.var-table th {
+  background: var(--code-bg); padding: 10px 14px; text-align: left; font-weight: 600;
+  font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink3);
+  border-bottom: 1px solid var(--line);
+}
+.var-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink2); vertical-align: top; }
+.var-table td:first-child { font-family: var(--mono); font-size: 13px; color: var(--accent); font-weight: 500; }
+.var-table tr:last-child td { border-bottom: none; }
+
+/* ── Interactive controls ── */
+.interactive-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 28px; margin: 28px 0; box-shadow: var(--shadow);
+}
+.interactive-card h4 { font-weight: 700; font-size: 1rem; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.interactive-card h4 .badge {
+  font-size: 10px; background: var(--accent); color: white; padding: 2px 8px;
+  border-radius: 20px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+}
+.control-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.control-label { font-size: 13px; font-weight: 500; min-width: 130px; color: var(--ink2); }
+.control-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.control-val { font-family: var(--mono); font-size: 13px; color: var(--ink); min-width: 56px; text-align: right; }
+.readout { background: var(--code-bg); border-radius: 10px; padding: 14px 18px; margin-top: 16px; font-size: 14px; }
+.readout-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.readout-row:last-child { border-bottom: none; }
+.readout-key { color: var(--ink3); font-size: 13px; }
+.readout-val { font-family: var(--mono); font-weight: 500; color: var(--accent); }
+
+/* ── Gradient descent visual ── */
+#gd-canvas { border-radius: 10px; }
+
+.teacher-script {
+            background-color: #eff6ff;
+            border-left: 5px solid #3b82f6;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+            font-size: 1.05rem;
+            color: #1e3a8a;
+        }
+        .teacher-script strong {
+            color: #1d4ed8;
+        }
+
+/* ── Final summary ── */
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 24px 0; }
+.summary-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 18px; display: flex; flex-direction: column; gap: 8px;
+}
+.summary-card .s-icon { font-size: 22px; }
+.summary-card .s-title { font-weight: 700; font-size: 14px; color: var(--ink); }
+.summary-card .s-desc { font-size: 13px; color: var(--ink2); line-height: 1.6; }
+
+/* ── Footer ── */
+footer { border-top: 1px solid var(--line); padding: 32px 0; text-align: center; color: var(--ink3); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── HERO ── -->
+<header class="hero">
+  <div class="hero-tag"> Module:2.1 · Artificial Intelligence </div>
+  <h1>Linear Regression<br>A Complete Visual Guide</h1>
+  
+  <nav class="toc">
+    <a href="#s0"><span class="toc-num">00</span> The Big Goal</a>
+    <a href="#s1"><span class="toc-num">01</span> The Dataset</a>
+    <a href="#s2"><span class="toc-num">02</span> The Model</a>
+    <a href="#s3"><span class="toc-num">03</span> Cost Function</a>
+    <a href="#s4"><span class="toc-num">04</span> Gradient Descent</a>
+    <a href="#s5"><span class="toc-num">05</span> Learning Rate</a>
+    <a href="#s6"><span class="toc-num">06</span> Convergence</a>
+    <a href="#s7"><span class="toc-num">07</span> Full Summary</a>
+  </nav>
+</header>
+
+<!-- ── SECTION 0: THE BIG GOAL ── -->
+<section class="section" id="s0">
+  <div class="section-label">Section 00</div>
+  <h2>The Overall Goal — What Are We Trying to Do?</h2>
+
+  <p>Imagine you want to <strong>predict the price of a house</strong>. You have a table of past sales data — the size of each house and how much it sold for. The question is:</p>
+
+  <div class="callout">
+    <div class="callout-title">🎯 The Core Question</div>
+    <p>Given a new house of a certain size, <strong>can we make a good guess at its price</strong> — even though we've never seen that exact house before?</p>
+  </div>
+
+  <p>Linear regression is the answer to that question.</p>
+  <p>Let us do an exercise: If a 1,000 sq ft house sold for $100,000, and a 2,000 sq ft house sold for $200,000, what would you price your 1,500 sq ft house at? 
+If you answered $150,000, Your brain just did Linear Regression. You looked at historical data, found a pattern (a straight line), and used that pattern to predict the future or the unknown.
+</p>
+    
+  <p>The <strong>big picture goal</strong> of Linear Regression is to find a <em>line</em> through the given data such that:</p>
+  <ul style="color: var(--ink2); padding-left: 24px; margin-bottom: 16px;">
+    <li style="margin-bottom: 8px;">The line <strong>fits the data as closely as possible</strong></li>
+    <li style="margin-bottom: 8px;">We can use that line to <strong>predict outputs for new inputs</strong></li>
+  </ul>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 300" role="img">
+      <title>Scatter plot of house sizes vs prices with a best-fit regression line</title>
+      <!-- Axes -->
+      <line x1="60" y1="260" x2="700" y2="260" stroke="#c8c5bf" stroke-width="1.5"/>
+      <line x1="60" y1="260" x2="60" y2="30" stroke="#c8c5bf" stroke-width="1.5"/>
+      <!-- Axis arrowheads -->
+      <polygon points="700,255 712,260 700,265" fill="#c8c5bf"/>
+      <polygon points="55,30 60,18 65,30" fill="#c8c5bf"/>
+      <!-- Axis labels -->
+      <text x="380" y="290" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">Size of house (sq ft)</text>
+      <text x="22" y="150" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680" transform="rotate(-90,22,150)">Price ($1000s)</text>
+      <!-- Grid lines -->
+      <line x1="60" y1="210" x2="700" y2="210" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="60" y1="160" x2="700" y2="160" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="60" y1="110" x2="700" y2="110" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="60" y1="60" x2="700" y2="60" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <!-- Y ticks -->
+      <text x="50" y="214" text-anchor="end" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">100</text>
+      <text x="50" y="164" text-anchor="end" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">200</text>
+      <text x="50" y="114" text-anchor="end" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">300</text>
+      <text x="50" y="64" text-anchor="end" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">400</text>
+      <!-- X ticks -->
+      <text x="160" y="276" text-anchor="middle" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">500</text>
+      <text x="280" y="276" text-anchor="middle" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">1000</text>
+      <text x="400" y="276" text-anchor="middle" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">1500</text>
+      <text x="520" y="276" text-anchor="middle" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">2000</text>
+      <text x="640" y="276" text-anchor="middle" font-size="11" font-family="DM Mono,monospace" fill="#8a8680">2500</text>
+      <!-- Data points -->
+      <circle cx="140" cy="225" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="190" cy="210" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="230" cy="198" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="270" cy="205" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="310" cy="185" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="330" cy="175" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="370" cy="172" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="390" cy="160" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="430" cy="155" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="460" cy="145" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="490" cy="138" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="510" cy="130" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="545" cy="120" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="570" cy="112" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="610" cy="100" r="5" fill="#2563eb" opacity=".8"/>
+      <circle cx="650" cy="92" r="5" fill="#2563eb" opacity=".8"/>
+      <!-- Best fit line -->
+      <line x1="90" y1="244" x2="690" y2="72" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- New point prediction -->
+      <circle cx="580" cy="108" r="8" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4 2"/>
+      <line x1="580" y1="260" x2="580" y2="116" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="60" y1="108" x2="572" y2="108" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="585" y="250" font-size="11" font-family="Plus Jakarta Sans,sans-serif" fill="#f59e0b" font-weight="600">new house?</text>
+      <text x="62" y="106" font-size="11" font-family="Plus Jakarta Sans,sans-serif" fill="#f59e0b" font-weight="600">→ ~$320k</text>
+      <!-- Legend -->
+      <circle cx="480" cy="42" r="5" fill="#2563eb"/>
+      <text x="490" y="46" font-size="12" font-family="Plus Jakarta Sans,sans-serif" fill="#4a4740">Training data</text>
+      <line x1="560" y1="42" x2="585" y2="42" stroke="#c84b2f" stroke-width="2.5"/>
+      <text x="590" y="46" font-size="12" font-family="Plus Jakarta Sans,sans-serif" fill="#4a4740">Best-fit line</text>
+    </svg>
+    <figcaption>Figure 1 — We find the best line through the training data, then use it to predict the price of an unseen house (yellow).</figcaption>
+  </div>
+
+  <p>This is <strong>supervised learning</strong> — we "supervise" the algorithm by giving it examples where we already know the right answer (the price). The algorithm learns from those examples and then generalises to new ones.</p>
+
+  <div class="callout blue">
+    <div class="callout-title">💡 Useful Framing</div>
+    <p>Think of it as teaching a student with solved examples. You show them many (house size → price) pairs. They learn the pattern. Then you ask them to solve a new problem they've never seen.</p>
+  </div>
+</section>
+
+<!-- ── SECTION 1: DATASET ── -->
+<section class="section" id="s1">
+  <div class="section-label">Section 01</div>
+  <h2>The Dataset — Your Raw Material</h2>
+
+  <p>Before we build any model, we need to understand what our data looks like. A training set in machine learning looks like a table:</p>
+
+  <div class="diagram-card" style="padding: 0; overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+      <thead>
+        <tr style="background: #f0ede6;">
+          <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #8a8680; border-bottom: 1px solid #e8e5df;">Index</th>
+          <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #8a8680; border-bottom: 1px solid #e8e5df;">x — Size (sq ft)</th>
+          <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #8a8680; border-bottom: 1px solid #e8e5df;">y — Price ($1000s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #8a8680;">(1)</td><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #2563eb;">1104</td><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #c84b2f;">199</td></tr>
+        <tr style="background: #faf9f6;"><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #8a8680;">(2)</td><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #2563eb;">1600</td><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #c84b2f;">249</td></tr>
+        <tr><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #8a8680;">(3)</td><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #2563eb;">2400</td><td style="padding: 12px 20px; border-bottom: 1px solid #e8e5df; font-family: 'DM Mono', monospace; color: #c84b2f;">347</td></tr>
+        <tr style="background: #faf9f6;"><td style="padding: 12px 20px; font-family: 'DM Mono', monospace; color: #8a8680;">⋮</td><td style="padding: 12px 20px; font-family: 'DM Mono', monospace; color: #8a8680;">⋮</td><td style="padding: 12px 20px; font-family: 'DM Mono', monospace; color: #8a8680;">⋮</td></tr>
+      </tbody>
+    </table>
+    <p style="padding: 12px 20px 16px; font-size: 13px; color: #8a8680; text-align: center; font-style: italic; border-top: 1px solid #e8e5df;">Table 1 — A training dataset. Each row is one training example (x⁽ⁱ⁾, y⁽ⁱ⁾).</p>
+  </div>
+
+  <h3>The Notation</h3>
+  <p>We'll be using consistent notation throughout the course. Let's define every symbol clearly:</p>
+
+  <table class="var-table">
+    <thead><tr><th>Symbol</th><th>Name</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>m</td><td>Training set size</td><td>Total number of examples in the dataset</td></tr>
+      <tr><td>x</td><td>Input feature</td><td>The thing we measure to make a prediction (e.g. house size)</td></tr>
+      <tr><td>y</td><td>Output / target</td><td>The thing we are trying to predict (e.g. house price)</td></tr>
+      <tr><td>(x, y)</td><td>Training example</td><td>One single row in the dataset</td></tr>
+      <tr><td>(x⁽ⁱ⁾, y⁽ⁱ⁾)</td><td>i-th training example</td><td>The i-th row; e.g. (x⁽¹⁾, y⁽¹⁾) = (1104, 199)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout green">
+    <div class="callout-title">📌 Why Notation Matters</div>
+    <p>x⁽²⁾ means "the x value of the 2nd training example". It does NOT mean x-squared. The superscript in parentheses is just an index, not a power.</p>
+  </div>
+</section>
+
+<!-- ── SECTION 2: THE MODEL ── -->
+<section class="section" id="s2">
+  <div class="section-label">Section 02</div>
+  <h2>The Model — What Shape Are We Learning?</h2>
+
+  <p>A model is just a <strong>mathematical function</strong> that maps an input x to a prediction ŷ (pronounced "y-hat"). In linear regression, we assume the relationship is a <strong>straight line</strong>:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">The Linear Regression Model</span>
+    <div class="eq-main">ŷ = f<sub>w,b</sub>(x) = wx + b</div>
+    <div class="eq-note">ŷ is our prediction. w and b are the parameters we need to learn.</div>
+  </div>
+
+  <p>This is exactly the equation of a line — you may have seen it as y = mx + c in school. Here:</p>
+
+  <div class="sub-eqs">
+    <div class="sub-eq">
+      <span class="var-name">w — the slope (weight)</span>
+      <strong>w</strong>
+      <span style="font-size: 12px; color: #8a8680; font-family: 'Plus Jakarta Sans'; display:block; margin-top:6px">Controls how steep the line is. A large w means price rises quickly with size.</span>
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">b — the y intercept (bias)</span>
+      <strong>b</strong>
+      <span style="font-size: 12px; color: #8a8680; font-family: 'Plus Jakarta Sans'; display:block; margin-top:6px">Where the line crosses the y-axis when x = 0.</span>
+    </div>
+  </div>
+
+  <h3>Seeing How w and b Change the Line</h3>
+  <p>Play with the sliders below to build intuition. Notice how <strong>w controls the angle</strong> and <strong>b shifts the line up or down</strong>.</p>
+
+  <div class="interactive-card">
+    <h4>Interactive Model Explorer <span class="badge">Try It</span></h4>
+    <div class="control-row">
+      <span class="control-label">Weight (w)</span>
+      <input type="range" id="w-slider" min="-1" max="3" step="0.05" value="0.5">
+      <span class="control-val" id="w-val">0.50</span>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Bias (b)</span>
+      <input type="range" id="b-slider" min="-200" max="400" step="5" value="50">
+      <span class="control-val" id="b-val">50</span>
+    </div>
+    <div style="position: relative; height: 260px; margin-top: 12px;">
+      <canvas id="modelChart"></canvas>
+    </div>
+    <div class="readout">
+      <div class="readout-row">
+        <span class="readout-key">Model equation</span>
+        <span class="readout-val" id="model-eq">ŷ = 0.50x + 50</span>
+      </div>
+      <div class="readout-row">
+        <span class="readout-key">Prediction for x = 1500 sq ft</span>
+        <span class="readout-val" id="model-pred">ŷ = $800k</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>The Learning Algorithm's Job</h3>
+
+  <p>Initially, w and b are just random values — the line doesn't fit the data well. <strong>The goal of training</strong> is to find the values of <strong>w</strong> and <strong>b</strong> that make the line fit as closely as possible to all the training examples.</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 200" role="img">
+      <title>Pipeline showing training data going into the learning algorithm to produce w and b</title>
+      <!-- Box 1: Training data -->
+      <rect x="20" y="60" width="160" height="80" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <text x="100" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="700" font-size="13" fill="#1a1814">Training Set</text>
+      <text x="100" y="114" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#4a4740">(x⁽¹⁾,y⁽¹⁾) … (x⁽ᵐ⁾,y⁽ᵐ⁾)</text>
+      <!-- Arrow 1 -->
+      <line x1="180" y1="100" x2="268" y2="100" stroke="#8a8680" stroke-width="1.5" marker-end="url(#arr1)"/>
+      <defs><marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- Box 2: Learning algorithm -->
+      <rect x="270" y="50" width="200" height="100" rx="10" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="370" y="90" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="700" font-size="13" fill="#1a1814">Learning Algorithm</text>
+      <text x="370" y="110" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#4a4740">Minimise cost over w, b</text>
+      <text x="370" y="128" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#c84b2f">(Gradient Descent)</text>
+      <!-- Arrow 2 -->
+      <line x1="470" y1="100" x2="558" y2="100" stroke="#8a8680" stroke-width="1.5" marker-end="url(#arr1)"/>
+      <!-- Box 3: Parameters -->
+      <rect x="560" y="60" width="170" height="80" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="645" y="91" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="700" font-size="13" fill="#1a1814">Optimal Parameters</text>
+      <text x="645" y="110" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#059669">w*, b*</text>
+    </svg>
+    <figcaption>Figure 2 — The training pipeline. The learning algorithm takes the data and outputs the best w and b.</figcaption>
+  </div>
+  The optimal parameters w* and b* are then put into the equation which becomes the final form of our model: ŷ = w*x + b*. This model can now be used to make predictions on new inputs. For example, if we want to predict the price of a 1,500 sq ft house, we just plug x = 1500 into the equation and get our predicted price ŷ.</p>
+  <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiB2aWV3Qm94PSIwIDAgNjgwIDQyMCIgcm9sZT0iaW1nIiBzdHlsZT0iIj4KICA8dGl0bGUgc3R5bGU9ImZpbGw6cmdiKDAsIDAsIDApO3N0cm9rZTpub25lO2NvbG9yOnJnYigwLCAwLCAwKTtzdHJva2Utd2lkdGg6MXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6c3RhcnQ7ZG9taW5hbnQtYmFzZWxpbmU6YXV0byI+TGluZWFyIHJlZ3Jlc3Npb24gdHJhaW5pbmcgYW5kIHByZWRpY3Rpb24gcGlwZWxpbmU8L3RpdGxlPgogIDxkZXNjIHN0eWxlPSJmaWxsOnJnYigwLCAwLCAwKTtzdHJva2U6bm9uZTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjFweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7Zm9udC13ZWlnaHQ6NDAwO3RleHQtYW5jaG9yOnN0YXJ0O2RvbWluYW50LWJhc2VsaW5lOmF1dG8iPkEgZmxvd2NoYXJ0IHNob3dpbmcgaG93IGEgdHJhaW5pbmcgc2V0IGZlZWRzIGludG8gYSBsZWFybmluZyBhbGdvcml0aG0gdG8gcHJvZHVjZSBhIGZ1bmN0aW9uIGYsIHdoaWNoIHRoZW4gdGFrZXMgYSBuZXcgaG91c2Ugc2l6ZSB4IGFuZCBvdXRwdXRzIGEgcHJlZGljdGVkIHByaWNlIMW3LjwvZGVzYz4KICA8ZGVmcz4KICAgIDxtYXJrZXIgaWQ9ImFycm93IiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9IjgiIHJlZlk9IjUiIG1hcmtlcldpZHRoPSI2IiBtYXJrZXJIZWlnaHQ9IjYiIG9yaWVudD0iYXV0by1zdGFydC1yZXZlcnNlIj4KICAgICAgPHBhdGggZD0iTTIgMUw4IDVMMiA5IiBmaWxsPSJub25lIiBzdHJva2U9ImNvbnRleHQtc3Ryb2tlIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48L3BhdGg+CiAgICA8L21hcmtlcj4KICA8L2RlZnM+CiAgPGcgc3R5bGU9ImZpbGw6cmdiKDAsIDAsIDApO3N0cm9rZTpub25lO2NvbG9yOnJnYigwLCAwLCAwKTtzdHJva2Utd2lkdGg6MXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6c3RhcnQ7ZG9taW5hbnQtYmFzZWxpbmU6YXV0byI+CiAgICA8cmVjdCB4PSIyNDAiIHk9IjI4IiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjcyIiByeD0iOCIgc3Ryb2tlLXdpZHRoPSIwLjUiIHN0eWxlPSJmaWxsOnJnYigyMzAsIDI0MSwgMjUxKTtzdHJva2U6cmdiKDI0LCA5NSwgMTY1KTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjAuNXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6c3RhcnQ7ZG9taW5hbnQtYmFzZWxpbmU6YXV0byI+PC9yZWN0PgogICAgPHRleHQgeD0iMzQwIiB5PSI1NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHN0eWxlPSJmaWxsOnJnYigxMiwgNjgsIDEyNCk7c3Ryb2tlOm5vbmU7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDoxcHg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7b3BhY2l0eToxO2ZvbnQtZmFtaWx5OiZxdW90O0FudGhyb3BpYyBTYW5zJnF1b3Q7LCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICZxdW90O1NlZ29lIFVJJnF1b3Q7LCBzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxNHB4O2ZvbnQtd2VpZ2h0OjUwMDt0ZXh0LWFuY2hvcjptaWRkbGU7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+VHJhaW5pbmcgc2V0PC90ZXh0PgogICAgPHRleHQgeD0iMzQwIiB5PSI3OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHN0eWxlPSJmaWxsOnJnYigyNCwgOTUsIDE2NSk7c3Ryb2tlOm5vbmU7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDoxcHg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7b3BhY2l0eToxO2ZvbnQtZmFtaWx5OiZxdW90O0FudGhyb3BpYyBTYW5zJnF1b3Q7LCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICZxdW90O1NlZ29lIFVJJnF1b3Q7LCBzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtd2VpZ2h0OjQwMDt0ZXh0LWFuY2hvcjptaWRkbGU7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+bSBsYWJlbGVkIGV4YW1wbGVzICh4LCB5KTwvdGV4dD4KICA8L2c+CiAgPGxpbmUgeDE9IjM0MCIgeTE9IjEwMCIgeDI9IjM0MCIgeTI9IjE0OCIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOnJnYigxMTUsIDExNCwgMTA4KTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjEuNXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6c3RhcnQ7ZG9taW5hbnQtYmFzZWxpbmU6YXV0byI+PC9saW5lPgogIDxnIHN0eWxlPSJmaWxsOnJnYigwLCAwLCAwKTtzdHJva2U6bm9uZTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjFweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7Zm9udC13ZWlnaHQ6NDAwO3RleHQtYW5jaG9yOnN0YXJ0O2RvbWluYW50LWJhc2VsaW5lOmF1dG8iPgogICAgPHJlY3QgeD0iMjEwIiB5PSIxNTAiIHdpZHRoPSIyNjAiIGhlaWdodD0iNzIiIHJ4PSI4IiBzdHJva2Utd2lkdGg9IjAuNSIgc3R5bGU9ImZpbGw6cmdiKDI1MCwgMjM2LCAyMzEpO3N0cm9rZTpyZ2IoMTUzLCA2MCwgMjkpO2NvbG9yOnJnYigwLCAwLCAwKTtzdHJva2Utd2lkdGg6MC41cHg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7b3BhY2l0eToxO2ZvbnQtZmFtaWx5OiZxdW90O0FudGhyb3BpYyBTYW5zJnF1b3Q7LCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICZxdW90O1NlZ29lIFVJJnF1b3Q7LCBzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxNnB4O2ZvbnQtd2VpZ2h0OjQwMDt0ZXh0LWFuY2hvcjpzdGFydDtkb21pbmFudC1iYXNlbGluZTphdXRvIj48L3JlY3Q+CiAgICA8dGV4dCB4PSIzNDAiIHk9IjE3OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHN0eWxlPSJmaWxsOnJnYigxMTMsIDQzLCAxOSk7c3Ryb2tlOm5vbmU7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDoxcHg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7b3BhY2l0eToxO2ZvbnQtZmFtaWx5OiZxdW90O0FudGhyb3BpYyBTYW5zJnF1b3Q7LCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICZxdW90O1NlZ29lIFVJJnF1b3Q7LCBzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxNHB4O2ZvbnQtd2VpZ2h0OjUwMDt0ZXh0LWFuY2hvcjptaWRkbGU7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+TGVhcm5pbmcgYWxnb3JpdGhtPC90ZXh0PgogICAgPHRleHQgeD0iMzQwIiB5PSIyMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBzdHlsZT0iZmlsbDpyZ2IoMTUzLCA2MCwgMjkpO3N0cm9rZTpub25lO2NvbG9yOnJnYigwLCAwLCAwKTtzdHJva2Utd2lkdGg6MXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTJweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6bWlkZGxlO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPk1pbmltaXNlIEoodywgYikgdmlhIGdyYWRpZW50IGRlc2NlbnQ8L3RleHQ+CiAgPC9nPgogIDxsaW5lIHgxPSIzNDAiIHkxPSIyMjIiIHgyPSIzNDAiIHkyPSIyNzAiIG1hcmtlci1lbmQ9InVybCgjYXJyb3cpIiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTpyZ2IoMTE1LCAxMTQsIDEwOCk7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDoxLjVweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7Zm9udC13ZWlnaHQ6NDAwO3RleHQtYW5jaG9yOnN0YXJ0O2RvbWluYW50LWJhc2VsaW5lOmF1dG8iPjwvbGluZT4KICA8ZyBzdHlsZT0iZmlsbDpyZ2IoMCwgMCwgMCk7c3Ryb2tlOm5vbmU7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDoxcHg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7b3BhY2l0eToxO2ZvbnQtZmFtaWx5OiZxdW90O0FudGhyb3BpYyBTYW5zJnF1b3Q7LCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICZxdW90O1NlZ29lIFVJJnF1b3Q7LCBzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxNnB4O2ZvbnQtd2VpZ2h0OjQwMDt0ZXh0LWFuY2hvcjpzdGFydDtkb21pbmFudC1iYXNlbGluZTphdXRvIj4KICAgIDxjaXJjbGUgY3g9IjM0MCIgY3k9IjMwMCIgcj0iMzYiIHN0cm9rZS13aWR0aD0iMC41IiBzdHlsZT0iZmlsbDpyZ2IoMjI1LCAyNDUsIDIzOCk7c3Ryb2tlOnJnYigxNSwgMTEwLCA4Nik7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDowLjVweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7Zm9udC13ZWlnaHQ6NDAwO3RleHQtYW5jaG9yOnN0YXJ0O2RvbWluYW50LWJhc2VsaW5lOmF1dG8iPjwvY2lyY2xlPgogICAgPHRleHQgeD0iMzQwIiB5PSIyOTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBzdHlsZT0iZmlsbDpyZ2IoOCwgODAsIDY1KTtzdHJva2U6bm9uZTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjFweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjE0cHg7Zm9udC13ZWlnaHQ6NTAwO3RleHQtYW5jaG9yOm1pZGRsZTtkb21pbmFudC1iYXNlbGluZTpjZW50cmFsIj5mPC90ZXh0PgogICAgPHRleHQgeD0iMzQwIiB5PSIzMTMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBzdHlsZT0iZmlsbDpyZ2IoMTUsIDExMCwgODYpO3N0cm9rZTpub25lO2NvbG9yOnJnYigwLCAwLCAwKTtzdHJva2Utd2lkdGg6MXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTJweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6bWlkZGxlO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPnd4ICsgYjwvdGV4dD4KICA8L2c+CiAgPGxpbmUgeDE9IjE0OCIgeTE9IjMwMCIgeDI9IjMwMiIgeTI9IjMwMCIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOnJnYigxMTUsIDExNCwgMTA4KTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjEuNXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6c3RhcnQ7ZG9taW5hbnQtYmFzZWxpbmU6YXV0byI+PC9saW5lPgogIDx0ZXh0IHg9IjEwMCIgeT0iMjkyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgc3R5bGU9ImZpbGw6cmdiKDIwLCAyMCwgMTkpO3N0cm9rZTpub25lO2NvbG9yOnJnYigwLCAwLCAwKTtzdHJva2Utd2lkdGg6MXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTRweDtmb250LXdlaWdodDo1MDA7dGV4dC1hbmNob3I6bWlkZGxlO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPng8L3RleHQ+CiAgPHRleHQgeD0iMTAwIiB5PSIzMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBzdHlsZT0iZmlsbDpyZ2IoNjEsIDYxLCA1OCk7c3Ryb2tlOm5vbmU7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDoxcHg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7b3BhY2l0eToxO2ZvbnQtZmFtaWx5OiZxdW90O0FudGhyb3BpYyBTYW5zJnF1b3Q7LCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICZxdW90O1NlZ29lIFVJJnF1b3Q7LCBzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtd2VpZ2h0OjQwMDt0ZXh0LWFuY2hvcjptaWRkbGU7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+aG91c2Ugc2l6ZTwvdGV4dD4KICA8dGV4dCB4PSIxMDAiIHk9IjMyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHN0eWxlPSJmaWxsOnJnYig2MSwgNjEsIDU4KTtzdHJva2U6bm9uZTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjFweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjEycHg7Zm9udC13ZWlnaHQ6NDAwO3RleHQtYW5jaG9yOm1pZGRsZTtkb21pbmFudC1iYXNlbGluZTpjZW50cmFsIj4oc3EgZnQpPC90ZXh0PgogIDxsaW5lIHgxPSIzNzYiIHkxPSIzMDAiIHgyPSI1MjAiIHkyPSIzMDAiIG1hcmtlci1lbmQ9InVybCgjYXJyb3cpIiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTpyZ2IoMTE1LCAxMTQsIDEwOCk7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDoxLjVweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjE2cHg7Zm9udC13ZWlnaHQ6NDAwO3RleHQtYW5jaG9yOnN0YXJ0O2RvbWluYW50LWJhc2VsaW5lOmF1dG8iPjwvbGluZT4KICA8dGV4dCB4PSI1NzgiIHk9IjI5MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHN0eWxlPSJmaWxsOnJnYigyMCwgMjAsIDE5KTtzdHJva2U6bm9uZTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjFweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjE0cHg7Zm9udC13ZWlnaHQ6NTAwO3RleHQtYW5jaG9yOm1pZGRsZTtkb21pbmFudC1iYXNlbGluZTpjZW50cmFsIj7FtzwvdGV4dD4KICA8dGV4dCB4PSI1NzgiIHk9IjMxMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHN0eWxlPSJmaWxsOnJnYig2MSwgNjEsIDU4KTtzdHJva2U6bm9uZTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjFweDtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtvcGFjaXR5OjE7Zm9udC1mYW1pbHk6JnF1b3Q7QW50aHJvcGljIFNhbnMmcXVvdDssIC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJnF1b3Q7U2Vnb2UgVUkmcXVvdDssIHNhbnMtc2VyaWY7Zm9udC1zaXplOjEycHg7Zm9udC13ZWlnaHQ6NDAwO3RleHQtYW5jaG9yOm1pZGRsZTtkb21pbmFudC1iYXNlbGluZTpjZW50cmFsIj5wcmVkaWN0ZWQgcHJpY2U8L3RleHQ+CiAgPHRleHQgeD0iNTc4IiB5PSIzMjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBzdHlsZT0iZmlsbDpyZ2IoNjEsIDYxLCA1OCk7c3Ryb2tlOm5vbmU7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDoxcHg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7b3BhY2l0eToxO2ZvbnQtZmFtaWx5OiZxdW90O0FudGhyb3BpYyBTYW5zJnF1b3Q7LCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICZxdW90O1NlZ29lIFVJJnF1b3Q7LCBzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxMnB4O2ZvbnQtd2VpZ2h0OjQwMDt0ZXh0LWFuY2hvcjptaWRkbGU7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+KCQxMDAwcyk8L3RleHQ+CiAgPGxpbmUgeDE9IjI0MCIgeTE9IjM3MiIgeDI9IjQ0MCIgeTI9IjM3MiIgc3Ryb2tlPSJ2YXIoLS1iKSIgc3Ryb2tlLXdpZHRoPSIwLjUiIHN0cm9rZS1kYXNoYXJyYXk9IjQgMyIgc3R5bGU9ImZpbGw6cmdiKDAsIDAsIDApO3N0cm9rZTpyZ2JhKDMxLCAzMCwgMjksIDAuMyk7Y29sb3I6cmdiKDAsIDAsIDApO3N0cm9rZS13aWR0aDowLjVweDtzdHJva2UtZGFzaGFycmF5OjRweCwgM3B4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6c3RhcnQ7ZG9taW5hbnQtYmFzZWxpbmU6YXV0byI+PC9saW5lPgogIDxsaW5lIHgxPSIyNDAiIHkxPSIzNjgiIHgyPSIyNDAiIHkyPSIzNzYiIHN0cm9rZT0idmFyKC0tYikiIHN0cm9rZS13aWR0aD0iMC41IiBzdHlsZT0iZmlsbDpyZ2IoMCwgMCwgMCk7c3Ryb2tlOnJnYmEoMzEsIDMwLCAyOSwgMC4zKTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjAuNXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6c3RhcnQ7ZG9taW5hbnQtYmFzZWxpbmU6YXV0byI+PC9saW5lPgogIDxsaW5lIHgxPSI0NDAiIHkxPSIzNjgiIHgyPSI0NDAiIHkyPSIzNzYiIHN0cm9rZT0idmFyKC0tYikiIHN0cm9rZS13aWR0aD0iMC41IiBzdHlsZT0iZmlsbDpyZ2IoMCwgMCwgMCk7c3Ryb2tlOnJnYmEoMzEsIDMwLCAyOSwgMC4zKTtjb2xvcjpyZ2IoMCwgMCwgMCk7c3Ryb2tlLXdpZHRoOjAuNXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6c3RhcnQ7ZG9taW5hbnQtYmFzZWxpbmU6YXV0byI+PC9saW5lPgogIDx0ZXh0IHg9IjM0MCIgeT0iMzkyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgc3R5bGU9ImZpbGw6cmdiKDYxLCA2MSwgNTgpO3N0cm9rZTpub25lO2NvbG9yOnJnYigwLCAwLCAwKTtzdHJva2Utd2lkdGg6MXB4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO29wYWNpdHk6MTtmb250LWZhbWlseTomcXVvdDtBbnRocm9waWMgU2FucyZxdW90OywgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAmcXVvdDtTZWdvZSBVSSZxdW90Oywgc2Fucy1zZXJpZjtmb250LXNpemU6MTJweDtmb250LXdlaWdodDo0MDA7dGV4dC1hbmNob3I6bWlkZGxlO2RvbWluYW50LWJhc2VsaW5lOmNlbnRyYWwiPm1vZGVsIG91dHB1dCBhZnRlciB0cmFpbmluZzwvdGV4dD4KPC9zdmc+Cg==" alt="Diagram showing the training pipeline for linear regression" style="width: 100%; border-radius: 10px; margin-top: 16px; box-shadow: var(--shadow);"/>
+</section>
+
+<!-- ── SECTION 3: COST FUNCTION ── -->
+<section class="section" id="s3">
+  <div class="section-label">Section 03</div>
+  <h2>The Cost Function — Measuring How Wrong We Are</h2>
+
+  <p>To find the best line, we first need a way to <strong>measure how bad any given line is</strong>. This is the cost function — it assigns a score to every possible (w, b) pair, where a <strong>lower score means a better fit</strong>.</p>
+
+  <h3>Step 1 — The Error for One Example</h3>
+  <p>For a single training example, the <strong>error</strong> (also called the residual) is the vertical distance between the predicted value ŷ and the actual value y:</p>
+
+  <div class="eq-block">
+    <div class="eq-main">error = Predicted value (ŷ)  − Actual value (y)</div>
+    
+  </div>
+  <div class="eq-block">
+    <span class="eq-label">Error for one training example</span>
+    <div class="eq-main">error = ŷ⁽ⁱ⁾ − y⁽ⁱ⁾</div>
+    <div class="eq-note">Positive means we over-predicted; negative means we under-predicted.</div>
+  </div>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 270" role="img">
+      <title>Diagram showing the error (residual) as the vertical distance between prediction and actual value</title>
+      <defs><marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#c84b2f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- Axes -->
+      <line x1="60" y1="240" x2="700" y2="240" stroke="#c8c5bf" stroke-width="1.5"/>
+      <line x1="60" y1="240" x2="60" y2="30" stroke="#c8c5bf" stroke-width="1.5"/>
+      <!-- Regression line -->
+      <line x1="90" y1="225" x2="680" y2="60" stroke="#c84b2f" stroke-width="2" stroke-linecap="round"/>
+      <!-- Points with errors highlighted -->
+      <circle cx="200" cy="180" r="5.5" fill="#2563eb"/>
+      <circle cx="400" cy="110" r="5.5" fill="#2563eb"/>
+      <circle cx="580" cy="72" r="5.5" fill="#2563eb"/>
+      <!-- Predicted values on line -->
+      <circle cx="200" cy="193" r="4" fill="none" stroke="#c84b2f" stroke-width="2"/>
+      <circle cx="400" cy="141" r="4" fill="none" stroke="#c84b2f" stroke-width="2"/>
+      <circle cx="580" cy="90" r="4" fill="none" stroke="#c84b2f" stroke-width="2"/>
+      <!-- Error lines -->
+      <line x1="200" y1="180" x2="200" y2="193" stroke="#059669" stroke-width="2.5" stroke-dasharray="none"/>
+      <line x1="400" y1="110" x2="400" y2="141" stroke="#f59e0b" stroke-width="2.5"/>
+      <line x1="580" y1="72" x2="580" y2="90" stroke="#7c3aed" stroke-width="2.5"/>
+      <!-- Labels -->
+      <text x="210" y="190" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669" font-weight="600">small error</text>
+      <text x="410" y="126" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#f59e0b" font-weight="600">medium error</text>
+      <text x="590" y="83" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#7c3aed" font-weight="600">large error</text>
+      <!-- Axis labels -->
+      <text x="380" y="260" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">x (input)</text>
+      <text x="22" y="140" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680" transform="rotate(-90,22,140)">y (output)</text>
+      <!-- Legend -->
+      <circle cx="380" cy="36" r="5" fill="#2563eb"/><text x="390" y="40" font-size="12" font-family="Plus Jakarta Sans,sans-serif" fill="#4a4740">Actual y⁽ⁱ⁾</text>
+      <circle cx="480" cy="36" r="4" fill="none" stroke="#c84b2f" stroke-width="2"/><text x="490" y="40" font-size="12" font-family="Plus Jakarta Sans,sans-serif" fill="#4a4740">Predicted ŷ⁽ⁱ⁾</text>
+    </svg>
+    <figcaption>Figure 3 — Each vertical bar is the error for one training example. We want all errors to be as small as possible.</figcaption>
+  </div>
+
+  <h3>Step 2 — Squaring the Error</h3>
+  <p>We <strong>square</strong> each error for two important reasons:</p>
+  <ol style="color: var(--ink2); padding-left: 24px; margin-bottom: 16px;">
+    <li style="margin-bottom: 8px;"><strong>Positive + Negative errors cancel out</strong> if we just add them up. Squaring makes everything positive.</li>
+    <li style="margin-bottom: 8px;"><strong>Large errors get penalised more heavily.</strong> An error of 4 squared = 16, but an error of 2 squared = 4. Squaring punishes big mistakes.</li>
+  </ol>
+
+  <div class="eq-block">
+    <span class="eq-label">Squared error for one example</span>
+    <div class="eq-main">(ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)²</div>
+  </div>
+
+  <h3>Step 3 — Average Over All Examples</h3>
+  <p>We average the squared errors across all m training examples. This gives us the <strong>Mean Squared Error (MSE)</strong>, we divide it by 2m for a cleaner derivative later:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">The Cost Function J(w, b)</span>
+    <div class="eq-main">J(w, b) = <sup>1</sup>/<sub>2m</sub> &sum;<sub>i=1</sub><sup>m</sup> (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)²</div>
+    <div class="eq-note">Since ŷ⁽ⁱ⁾ = wx⁽ⁱ⁾ + b, we can also write it as J(w, b) = (1/2m) Σ (wx⁽ⁱ⁾ + b − y⁽ⁱ⁾)²</div>
+  </div>
+
+  <div class="callout purple">
+    <div class="callout-title">🔑 Key Insight</div>
+    <p>J(w, b) is a <strong>single number</strong> that tells us how good or bad our current w and b are. If J is large → bad fit. If J is close to zero → great fit. Our entire job is to <em>minimise J</em>.</p>
+  </div>
+
+  <h3>Visualising the Cost Function</h3>
+  <p>For a simplified case with just w (fixing b=0), the cost function J(w) is a <strong>bowl-shaped (convex) curve</strong>. The bottom of the bowl is the optimal w:</p>
+
+  
+<div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 280" role="img">
+      <title>Bowl-shaped cost function J(w) with the minimum marked at w-star</title>
+      <defs><marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- Axes -->
+      <line x1="60" y1="240" x2="700" y2="240" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#arr3)"/>
+      <line x1="60" y1="240" x2="60" y2="30" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#arr3)"/>
+      <text x="710" y="244" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">w</text>
+      <text x="40" y="25" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">J(w)</text>
+      
+      <!-- Bowl curve (parabola) - Flipped to face upward -->
+      <path d="M100,50 Q380,390 660,50" fill="none" stroke="#c84b2f" stroke-width="3" stroke-linecap="round"/>
+      
+      <!-- Minimum point (Now at the bottom) -->
+      <circle cx="380" cy="220" r="7" fill="#c84b2f"/>
+      <line x1="380" y1="220" x2="380" y2="240" stroke="#c84b2f" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="372" y="258" font-family="DM Mono,monospace" font-size="13" fill="#c84b2f" dominant-baseline="auto">w*</text>
+      <text x="395" y="210" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f" font-weight="600">J is minimum here!</text>
+      
+      <!-- Points on the curve (bad w values) -->
+      <circle cx="180" cy="133" r="6" fill="#2563eb"/>
+      <text x="90" y="138" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#2563eb">w too small</text>
+      <circle cx="580" cy="133" r="6" fill="#2563eb"/>
+      <text x="595" y="138" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#2563eb">w too large</text>
+      
+      <!-- Arrows showing direction to minimum (Pointing down the slopes) -->
+      <path d="M 195 145 Q 280 200 360 215" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr3)"/>
+      <path d="M 565 145 Q 480 200 400 215" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr3)"/>
+    </svg>
+    <figcaption>Figure 4 — The cost function J(w) is bowl-shaped. Any w away from w* gives a higher cost. We need to find the bottom of the bowl.</figcaption>
+  </div>
+
+  <p>In reality we have <strong>both w and b</strong>, so J(w, b) is a 3D surface — shaped like a soup bowl. The bottom of that bowl is the optimal (w*, b*) we're searching for.</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 300" role="img">
+      <title>3D bowl-shaped surface of J(w, b) with contour lines shown below</title>
+      <!-- 3D bowl perspective sketch -->
+      <ellipse cx="380" cy="90" rx="200" ry="50" fill="#fef6f4" stroke="#c84b2f" stroke-width="1" opacity="0.6"/>
+      <ellipse cx="380" cy="120" rx="160" ry="40" fill="#fef6f4" stroke="#c84b2f" stroke-width="1" opacity="0.5"/>
+      <ellipse cx="380" cy="148" rx="115" ry="28" fill="#fef6f4" stroke="#c84b2f" stroke-width="1" opacity="0.5"/>
+      <ellipse cx="380" cy="170" rx="72" ry="18" fill="#fef6f4" stroke="#c84b2f" stroke-width="1" opacity="0.6"/>
+      <ellipse cx="380" cy="187" rx="35" ry="9" fill="#fce7e0" stroke="#c84b2f" stroke-width="1.5" opacity="0.8"/>
+      <circle cx="380" cy="193" r="5" fill="#c84b2f"/>
+      <text x="390" y="198" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f" font-weight="700">minimum J(w*,b*)</text>
+      <!-- Left side of bowl -->
+      <path d="M 180 90 Q 200 195 380 195" fill="none" stroke="#c8c5bf" stroke-width="1.5"/>
+      <path d="M 580 90 Q 560 195 380 195" fill="none" stroke="#c8c5bf" stroke-width="1.5"/>
+      <!-- Axis labels -->
+      <text x="100" y="105" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680" transform="rotate(-15,100,105)">J(w,b)</text>
+      <text x="560" y="104" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">w →</text>
+      <text x="180" y="72" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">b →</text>
+      <!-- Contour plot section -->
+      <text x="380" y="248" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="600" fill="#4a4740">Contour Plot (top-down view)</text>
+      <!-- Contour lines (ellipses) -->
+      <ellipse cx="380" cy="280" rx="130" ry="0" fill="none"/>
+      <!-- Replace with drawn contours -->
+      <text x="380" y="280" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Each oval = same cost J. Centre = minimum.</text>
+    </svg>
+    <figcaption>Figure 5 — J(w, b) is a 3D bowl. Each ellipse in the contour view represents all (w, b) pairs with equal cost.</figcaption>
+  </div>
+
+
+<style>
+.we-wrap { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; margin-top: 48px; }
+
+/* ── Section divider ── */
+.we-rule { border: none; border-top: 1px solid #e8e5df; margin: 0 0 40px; }
+
+/* ── Callout boxes ── */
+.we-callout {
+  border-left: 3px solid #c84b2f; background: #fef6f4;
+  border-radius: 0 12px 12px 0; padding: 16px 20px; margin: 20px 0;
+}
+.we-callout.blue  { border-color: #2563eb; background: #eff6ff; }
+.we-callout.green { border-color: #059669; background: #ecfdf5; }
+.we-callout p { margin: 0; color: #1a1814; font-size: 15px; line-height: 1.75; }
+.we-callout-title { font-weight: 700; font-size: 12px; text-transform: uppercase;
+  letter-spacing: .08em; margin-bottom: 6px; color: #c84b2f; }
+.we-callout.blue  .we-callout-title { color: #2563eb; }
+.we-callout.green .we-callout-title { color: #059669; }
+
+/* ── Equation display ── */
+.we-eq {
+  background: #f0ede6; border: 1px solid #e8e5df; border-radius: 12px;
+  padding: 18px 24px; margin: 18px 0; text-align: center;
+  font-family: 'DM Mono', monospace; font-size: 1.15rem; color: #1a1814;
+  overflow-x: auto;
+}
+.we-eq-label { font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+  color: #8a8680; display: block; margin-bottom: 6px; }
+
+/* ── Data table ── */
+.we-tbl { width: 100%; border-collapse: collapse; font-size: 14px; margin: 18px 0; }
+.we-tbl th { background: #f0ede6; padding: 10px 16px; font-weight: 600;
+  font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+  color: #8a8680; border-bottom: 1px solid #e8e5df; text-align: center; }
+.we-tbl td { padding: 11px 16px; border-bottom: 1px solid #e8e5df;
+  text-align: center; color: #4a4740; font-family: 'DM Mono', monospace; font-size: 14px; }
+.we-tbl tr:last-child td { border-bottom: none; }
+.we-tbl .hi { color: #c84b2f; font-weight: 600; }
+.we-tbl .ok { color: #059669; font-weight: 600; }
+.we-tbl .hdr { background: #faf9f6; }
+
+/* ── Step cards ── */
+.we-steps { display: flex; flex-direction: column; gap: 0; margin: 24px 0; }
+.we-step  { display: flex; gap: 18px; padding-bottom: 28px; position: relative; }
+.we-step:last-child { padding-bottom: 0; }
+.we-step-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.we-step-num {
+  width: 34px; height: 34px; border-radius: 50%; background: #c84b2f;
+  color: white; font-weight: 700; font-size: 13px; display: flex;
+  align-items: center; justify-content: center; font-family: 'DM Mono', monospace;
+}
+.we-step-num.green { background: #059669; }
+.we-step-line { width: 2px; flex: 1; background: #e8e5df; margin-top: 6px; }
+.we-step:last-child .we-step-line { display: none; }
+.we-step-body { padding-top: 4px; flex: 1; }
+.we-step-body h4 { font-size: 15px; font-weight: 700; color: #1a1814; margin: 0 0 8px; }
+.we-step-body p  { font-size: 14px; color: #4a4740; margin: 0 0 10px; line-height: 1.7; }
+.we-step-body p:last-child { margin-bottom: 0; }
+
+/* ── Mini eq inside step ── */
+.we-mini-eq {
+  background: #f0ede6; border-radius: 8px; padding: 10px 16px;
+  font-family: 'DM Mono', monospace; font-size: 13px; color: #1a1814;
+  margin: 8px 0; display: inline-block;
+}
+.we-mini-eq.red   { background: #fef2f0; color: #c84b2f; border: 1px solid #fdd9d0; }
+.we-mini-eq.green { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.we-mini-eq.blue  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+/* ── Result banner ── */
+.we-result {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f0ede6; border-radius: 12px; padding: 16px 22px;
+  margin: 20px 0; flex-wrap: wrap; gap: 10px;
+}
+.we-result-label { font-size: 13px; color: #8a8680; }
+.we-result-val   { font-family: 'DM Mono', monospace; font-size: 1.5rem;
+  font-weight: 700; color: #c84b2f; }
+.we-result.green .we-result-val { color: #059669; }
+
+/* ── Comparison row ── */
+.we-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.we-compare-card {
+  border-radius: 12px; padding: 18px 20px;
+  border: 1px solid #e8e5df; background: #ffffff;
+}
+.we-compare-card.bad  { border-color: #fecaca; background: #fff5f5; }
+.we-compare-card.good { border-color: #6ee7b7; background: #f0fdf9; }
+.we-compare-card h4 { font-size: 14px; font-weight: 700; margin: 0 0 10px; }
+.we-compare-card.bad  h4 { color: #c84b2f; }
+.we-compare-card.good h4 { color: #059669; }
+.we-compare-card p { font-size: 13px; color: #4a4740; margin: 0; line-height: 1.65; }
+.we-compare-val { font-family: 'DM Mono', monospace; font-size: 1.3rem;
+  font-weight: 700; margin: 8px 0 0; }
+.we-compare-card.bad  .we-compare-val { color: #c84b2f; }
+.we-compare-card.good .we-compare-val { color: #059669; }
+
+/* ── Section headings ── */
+.we-h3 { font-family: 'Lora', Georgia, serif; font-size: 1.2rem; font-weight: 700;
+  color: #1a1814; margin: 36px 0 14px; }
+.we-h4 { font-size: 14px; font-weight: 700; color: #1a1814; margin: 24px 0 10px; }
+.we-p  { font-size: 15px; color: #4a4740; line-height: 1.75; margin: 0 0 14px; }
+
+/* ── Chart wrapper ── */
+.we-chart-wrap { position: relative; height: 260px; margin: 0; }
+
+/* ── Diagram card ── */
+.we-diagram {
+  background: #ffffff; border: 1px solid #e8e5df; border-radius: 16px;
+  padding: 24px; margin: 24px 0; overflow: hidden;
+}
+.we-diagram figcaption {
+  font-size: 12px; color: #8a8680; text-align: center;
+  margin-top: 12px; font-style: italic;
+}
+
+/* ── Key insight pill ── */
+.we-insight {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #fef6f4; border: 1px solid #fdd9d0;
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 12px; font-weight: 600; color: #c84b2f;
+  margin: 4px 4px 4px 0;
+}
+</style>
+
+<div class="we-wrap">
+<hr class="we-rule">
+
+<!-- ── INTRO ── -->
+<h3 class="we-h3">A fully worked example — computing J step by step</h3>
+
+<p class="we-p">
+  The formula for J can look intimidating. Let's make it completely concrete using a tiny dataset
+  of just three points that lie on a perfect 45° line. We will calculate J twice — once for a
+  <em>wrong</em> value of w, and once for the <em>correct</em> value — and see exactly why the
+  correct w gives zero cost.
+</p>
+
+<!-- ── SETUP ── -->
+<h3 class="we-h3">The setup</h3>
+
+<p class="we-p">
+  Our three training examples are:
+</p>
+
+<table class="we-tbl">
+  <thead>
+    <tr>
+      <th>Example i</th>
+      <th>x⁽ⁱ⁾ (input)</th>
+      <th>y⁽ⁱ⁾ (true output)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>1</td><td>1</td></tr>
+    <tr><td>2</td><td>2</td><td>2</td></tr>
+    <tr><td>3</td><td>3</td><td>3</td></tr>
+  </tbody>
+</table>
+
+<p class="we-p">
+  These three points sit perfectly on the line y = x (a 45° diagonal through the origin).
+  We will use the simplified model with <strong>b = 0</strong>, so our hypothesis is just:
+</p>
+
+<div class="we-eq">
+  <span class="we-eq-label">Our simplified model (b = 0)</span>
+  ŷ = f<sub>w</sub>(x) = w · x
+</div>
+
+<p class="we-p">And the cost function is:</p>
+
+<div class="we-eq">
+  <span class="we-eq-label">Cost function</span>
+  J(w) = <sup>1</sup>/<sub>2m</sub> &sum;<sub>i=1</sub><sup>m</sup> (wx⁽ⁱ⁾ &minus; y⁽ⁱ⁾)²
+</div>
+
+<p class="we-p">
+  where m = 3 (we have 3 training examples).
+</p>
+
+<!-- ── DIAGRAM 1: the data points ── -->
+<div class="we-diagram">
+  <svg width="100%" viewBox="0 0 680 300" role="img">
+    <title>Scatter plot of three training examples (1,1), (2,2), (3,3) lying on a 45-degree line</title>
+    <desc>Three blue dots at (1,1), (2,2), and (3,3) sitting on a perfect 45-degree diagonal.</desc>
+    <defs>
+      <marker id="we-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    
+    <!-- Axes (Shifted origin to x=60 to perfectly match data scaling) -->
+    <line x1="60" y1="250" x2="620" y2="250" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#we-arr)"/>
+    <line x1="60" y1="250" x2="60"  y2="30"  stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#we-arr)"/>
+    
+    <!-- Horizontal Grid lines -->
+    <line x1="60" y1="180" x2="615" y2="180" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="60" y1="110" x2="615" y2="110" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="60" y1="40"  x2="615" y2="40"  stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    
+    <!-- Vertical Grid lines -->
+    <line x1="200" y1="30" x2="200" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="340" y1="30" x2="340" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="480" y1="30" x2="480" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    
+    <!-- Tick labels -->
+    <text x="200" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">1</text>
+    <text x="340" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">2</text>
+    <text x="480" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">3</text>
+    <text x="46"  y="184" text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">1</text>
+    <text x="46"  y="114" text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">2</text>
+    <text x="46"  y="44"  text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">3</text>
+    
+    <!-- Axis labels -->
+    <text x="340" y="290" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">x</text>
+    <text x="30"  y="140" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680" transform="rotate(-90,30,140)">y</text>
+    
+    <!-- True line y = x (Corrected mathematically) -->
+    <line x1="60" y1="250" x2="550" y2="5" stroke="#059669" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="500" y="22" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669" font-weight="700">y = x (true line)</text>
+    
+    <!-- Data points -->
+    <circle cx="200" cy="180" r="9" fill="#2563eb" opacity=".9"/>
+    <circle cx="340" cy="110" r="9" fill="#2563eb" opacity=".9"/>
+    <circle cx="480" cy="40"  r="9" fill="#2563eb" opacity=".9"/>
+    
+    <!-- Labels beside points -->
+    <text x="214" y="178" font-family="DM Mono,monospace" font-size="13" fill="#0c447c" font-weight="600">(1, 1)</text>
+    <text x="354" y="108" font-family="DM Mono,monospace" font-size="13" fill="#0c447c" font-weight="600">(2, 2)</text>
+    <text x="494" y="38"  font-family="DM Mono,monospace" font-size="13" fill="#0c447c" font-weight="600">(3, 3)</text>
+  </svg>
+  <figcaption>Figure — our three training examples. They lie perfectly on the 45° line y = x.</figcaption>
+</div>
+
+<!-- ════════════════════════════════
+     CASE 1: w = 0.5
+════════════════════════════════ -->
+<h3 class="we-h3">Case 1 — what if w = 0.5? (a wrong guess)</h3>
+
+<p class="we-p">
+  Let's say we start with a guess of w = 0.5. This means our model predicts:
+</p>
+
+<div class="we-eq">ŷ = 0.5 · x</div>
+
+<p class="we-p">
+  For x = 1, it predicts 0.5. For x = 2, it predicts 1.0. For x = 3, it predicts 1.5.
+  Those are all exactly half the true values — clearly wrong. Now let's calculate J precisely.
+</p>
+
+<!-- Step-by-step calculation w=0.5 -->
+<h4 class="we-h4">Step-by-step calculation of J(0.5)</h4>
+
+<div class="we-steps">
+
+  <!-- Step 1 -->
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num">1</div>
+      <div class="we-step-line"></div>
+    </div>
+    <div class="we-step-body">
+      <h4>Compute the prediction ŷ for each example</h4>
+      <p>Plug each x value into our model ŷ = 0.5 · x:</p>
+      <div class="we-mini-eq blue">ŷ⁽¹⁾ = 0.5 × 1 = <strong>0.5</strong></div><br>
+      <div class="we-mini-eq blue">ŷ⁽²⁾ = 0.5 × 2 = <strong>1.0</strong></div><br>
+      <div class="we-mini-eq blue">ŷ⁽³⁾ = 0.5 × 3 = <strong>1.5</strong></div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num">2</div>
+      <div class="we-step-line"></div>
+    </div>
+    <div class="we-step-body">
+      <h4>Compute the error (ŷ − y) for each example</h4>
+      <p>Subtract the true y from our prediction. The result tells us how wrong we are for each point:</p>
+      <div class="we-mini-eq red">error⁽¹⁾ = 0.5 − 1 = <strong>−0.5</strong></div><br>
+      <div class="we-mini-eq red">error⁽²⁾ = 1.0 − 2 = <strong>−1.0</strong></div><br>
+      <div class="we-mini-eq red">error⁽³⁾ = 1.5 − 3 = <strong>−1.5</strong></div>
+      <p style="margin-top: 10px;">All errors are negative — our line is predicting values that are too small.</p>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num">3</div>
+      <div class="we-step-line"></div>
+    </div>
+    <div class="we-step-body">
+      <h4>Square each error — (ŷ − y)²</h4>
+      <p>We square the errors so that negative and positive errors don't cancel, and so larger errors are punished more heavily:</p>
+      <div class="we-mini-eq">(−0.5)² = <strong>0.25</strong></div><br>
+      <div class="we-mini-eq">(−1.0)² = <strong>1.00</strong></div><br>
+      <div class="we-mini-eq">(−1.5)² = <strong>2.25</strong></div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num">4</div>
+      <div class="we-step-line"></div>
+    </div>
+    <div class="we-step-body">
+      <h4>Add all the squared errors together</h4>
+      <p>Sum them up across all m = 3 examples:</p>
+      <div class="we-mini-eq">0.25 + 1.00 + 2.25 = <strong>3.50</strong></div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num">5</div>
+    </div>
+    <div class="we-step-body">
+      <h4>Divide by 2m to get the final cost J</h4>
+      <p>Here m = 3, so 2m = 6. We divide by 2m (not just m) because it makes the derivative cleaner later — it's a convention Andrew Ng uses throughout:</p>
+      <div class="we-mini-eq red">J(0.5) = 3.50 ÷ 6 = <strong>0.583</strong></div>
+    </div>
+  </div>
+
+</div><!-- /steps -->
+
+<!-- Summary table w=0.5 -->
+<table class="we-tbl" style="margin-top: 20px;">
+  <thead>
+    <tr>
+      <th>i</th>
+      <th>x⁽ⁱ⁾</th>
+      <th>y⁽ⁱ⁾</th>
+      <th>ŷ⁽ⁱ⁾ = 0.5x</th>
+      <th>error (ŷ−y)</th>
+      <th>(ŷ−y)²</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>1</td><td>1</td><td>0.5</td><td class="hi">−0.5</td><td>0.25</td></tr>
+    <tr class="hdr"><td>2</td><td>2</td><td>2</td><td>1.0</td><td class="hi">−1.0</td><td>1.00</td></tr>
+    <tr><td>3</td><td>3</td><td>3</td><td>1.5</td><td class="hi">−1.5</td><td>2.25</td></tr>
+    <tr class="hdr"><td colspan="5" style="text-align:right; color:#8a8680; font-size:12px; font-family:'Plus Jakarta Sans',sans-serif;">Sum of squared errors</td><td style="font-weight:700;">3.50</td></tr>
+    <tr><td colspan="5" style="text-align:right; color:#8a8680; font-size:12px; font-family:'Plus Jakarta Sans',sans-serif;">J = 3.50 ÷ (2×3)</td><td class="hi">0.583</td></tr>
+  </tbody>
+</table>
+
+<div class="we-result">
+  <span class="we-result-label">J(w = 0.5) =</span>
+  <span class="we-result-val">0.583 &nbsp; ← non-zero cost, bad fit</span>
+</div>
+
+<!-- Diagram: w=0.5 line vs data -->
+<div class="we-diagram">
+  <svg width="100%" viewBox="0 0 680 300" role="img">
+    <title>Scatter plot showing the line w=0.5 (too shallow) versus the true data points, with error bars</title>
+    <desc>Blue dots at (1,1), (2,2), (3,3). The red w=0.5 line passes below each point. Vertical red dashed lines show the errors.</desc>
+    <defs>
+      <marker id="we-arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    <!-- Axes -->
+    <line x1="70" y1="250" x2="620" y2="250" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#we-arr2)"/>
+    <line x1="70" y1="250" x2="70"  y2="30"  stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#we-arr2)"/>
+    <!-- Grid -->
+    <line x1="70" y1="180" x2="615" y2="180" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="70" y1="110" x2="615" y2="110" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="70" y1="40"  x2="615" y2="40"  stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="200" y1="30" x2="200" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="340" y1="30" x2="340" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="480" y1="30" x2="480" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <!-- Ticks -->
+    <text x="200" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">1</text>
+    <text x="340" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">2</text>
+    <text x="480" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">3</text>
+    <text x="56"  y="184" text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">1</text>
+    <text x="56"  y="114" text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">2</text>
+    <text x="56"  y="44"  text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">3</text>
+    <!-- w=0.5 model line: passes through (0,250), (3, 250-3*70)=(3,40) scaled -->
+    <!-- y_screen = 250 - y_data*70  so w=0.5: at x=0→250, x=4→250-0.5*4*70=110 -->
+    <line x1="70" y1="250" x2="590" y2="115" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="530" y="112" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f" font-weight="700">ŷ = 0.5x (our wrong guess)</text>
+    <!-- Predicted points on model line -->
+    <!-- x=1: screen_x=200, screen_y=250-0.5*1*70=215 -->
+    <circle cx="200" cy="215" r="6" fill="none" stroke="#c84b2f" stroke-width="2"/>
+    <!-- x=2: screen_y=250-0.5*2*70=180 -->
+    <circle cx="340" cy="180" r="6" fill="none" stroke="#c84b2f" stroke-width="2"/>
+    <!-- x=3: screen_y=250-0.5*3*70=145 -->
+    <circle cx="480" cy="145" r="6" fill="none" stroke="#c84b2f" stroke-width="2"/>
+    <!-- Error bars (vertical red lines) -->
+    <line x1="200" y1="180" x2="200" y2="215" stroke="#c84b2f" stroke-width="2.5" stroke-dasharray="5 3"/>
+    <line x1="340" y1="110" x2="340" y2="180" stroke="#c84b2f" stroke-width="2.5" stroke-dasharray="5 3"/>
+    <line x1="480" y1="40"  x2="480" y2="145" stroke="#c84b2f" stroke-width="2.5" stroke-dasharray="5 3"/>
+    <!-- Error labels -->
+    <text x="212" y="200" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">−0.5</text>
+    <text x="352" y="148" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">−1.0</text>
+    <text x="492" y="97"  font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">−1.5</text>
+    <!-- Actual data points (on top) -->
+    <circle cx="200" cy="180" r="8" fill="#2563eb" opacity=".9"/>
+    <circle cx="340" cy="110" r="8" fill="#2563eb" opacity=".9"/>
+    <circle cx="480" cy="40"  r="8" fill="#2563eb" opacity=".9"/>
+    <!-- Legend -->
+    <circle cx="90" cy="276" r="6" fill="#2563eb"/>
+    <text x="102" y="280" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">True data y⁽ⁱ⁾</text>
+    <circle cx="220" cy="276" r="5" fill="none" stroke="#c84b2f" stroke-width="2"/>
+    <text x="232" y="280" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">Predicted ŷ⁽ⁱ⁾</text>
+    <line x1="355" y1="276" x2="380" y2="276" stroke="#c84b2f" stroke-width="2" stroke-dasharray="4 3"/>
+    <text x="386" y="280" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">Error (ŷ − y)</text>
+  </svg>
+  <figcaption>Figure — with w = 0.5, our line is too shallow. Every prediction is below the true value. The red dashed bars are the errors.</figcaption>
+</div>
+
+<!-- ════════════════════════════════
+     CASE 2: w = 1
+════════════════════════════════ -->
+<h3 class="we-h3">Case 2 — what if w = 1? (the correct value)</h3>
+
+<p class="we-p">
+  Now let's try w = 1. Our model becomes ŷ = 1 · x = x, which is exactly the true relationship.
+  Let's calculate J and see what happens.
+</p>
+
+<h4 class="we-h4">Step-by-step calculation of J(1)</h4>
+
+<div class="we-steps">
+
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num green">1</div>
+      <div class="we-step-line"></div>
+    </div>
+    <div class="we-step-body">
+      <h4>Compute ŷ for each example</h4>
+      <p>With w = 1, the model is ŷ = 1 · x = x:</p>
+      <div class="we-mini-eq green">ŷ⁽¹⁾ = 1 × 1 = <strong>1</strong> &nbsp; ← exactly equals y⁽¹⁾</div><br>
+      <div class="we-mini-eq green">ŷ⁽²⁾ = 1 × 2 = <strong>2</strong> &nbsp; ← exactly equals y⁽²⁾</div><br>
+      <div class="we-mini-eq green">ŷ⁽³⁾ = 1 × 3 = <strong>3</strong> &nbsp; ← exactly equals y⁽³⁾</div>
+    </div>
+  </div>
+
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num green">2</div>
+      <div class="we-step-line"></div>
+    </div>
+    <div class="we-step-body">
+      <h4>Compute the error (ŷ − y) for each example</h4>
+      <p>Since the predictions are perfect, every error is zero:</p>
+      <div class="we-mini-eq green">error⁽¹⁾ = 1 − 1 = <strong>0</strong></div><br>
+      <div class="we-mini-eq green">error⁽²⁾ = 2 − 2 = <strong>0</strong></div><br>
+      <div class="we-mini-eq green">error⁽³⁾ = 3 − 3 = <strong>0</strong></div>
+    </div>
+  </div>
+
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num green">3</div>
+      <div class="we-step-line"></div>
+    </div>
+    <div class="we-step-body">
+      <h4>Square the errors</h4>
+      <p>Squaring zero still gives zero:</p>
+      <div class="we-mini-eq green">0² = <strong>0</strong></div><br>
+      <div class="we-mini-eq green">0² = <strong>0</strong></div><br>
+      <div class="we-mini-eq green">0² = <strong>0</strong></div>
+    </div>
+  </div>
+
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num green">4</div>
+      <div class="we-step-line"></div>
+    </div>
+    <div class="we-step-body">
+      <h4>Sum all squared errors</h4>
+      <div class="we-mini-eq green">0 + 0 + 0 = <strong>0</strong></div>
+    </div>
+  </div>
+
+  <div class="we-step">
+    <div class="we-step-left">
+      <div class="we-step-num green">5</div>
+    </div>
+    <div class="we-step-body">
+      <h4>Divide by 2m</h4>
+      <div class="we-mini-eq green">J(1) = 0 ÷ 6 = <strong>0</strong></div>
+      <p style="margin-top: 10px;">A cost of zero means our predictions are <em>perfect</em> — the line fits the data exactly.</p>
+    </div>
+  </div>
+
+</div>
+
+<table class="we-tbl" style="margin-top: 20px;">
+  <thead>
+    <tr>
+      <th>i</th>
+      <th>x⁽ⁱ⁾</th>
+      <th>y⁽ⁱ⁾</th>
+      <th>ŷ⁽ⁱ⁾ = 1·x</th>
+      <th>error (ŷ−y)</th>
+      <th>(ŷ−y)²</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>1</td><td>1</td><td>1</td><td class="ok">0</td><td class="ok">0</td></tr>
+    <tr class="hdr"><td>2</td><td>2</td><td>2</td><td>2</td><td class="ok">0</td><td class="ok">0</td></tr>
+    <tr><td>3</td><td>3</td><td>3</td><td>3</td><td class="ok">0</td><td class="ok">0</td></tr>
+    <tr class="hdr"><td colspan="5" style="text-align:right; color:#8a8680; font-size:12px; font-family:'Plus Jakarta Sans',sans-serif;">Sum of squared errors</td><td class="ok">0</td></tr>
+    <tr><td colspan="5" style="text-align:right; color:#8a8680; font-size:12px; font-family:'Plus Jakarta Sans',sans-serif;">J = 0 ÷ (2×3)</td><td class="ok">0</td></tr>
+  </tbody>
+</table>
+
+<div class="we-result green">
+  <span class="we-result-label">J(w = 1) =</span>
+  <span class="we-result-val">0 &nbsp; ← perfect fit!</span>
+</div>
+
+<!-- Diagram: w=1 perfect fit -->
+<div class="we-diagram">
+  <svg width="100%" viewBox="0 0 680 300" role="img">
+    <title>Scatter plot showing the line w=1 passing perfectly through all three data points with zero error</title>
+    <desc>Blue dots at (1,1), (2,2), (3,3). The green w=1 line passes exactly through every point. No error bars exist.</desc>
+    <defs>
+      <marker id="we-arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    
+    <!-- Coordinate Axes -->
+    <line x1="60" y1="250" x2="620" y2="250" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#we-arr3)"/>
+    <line x1="60" y1="250" x2="60"  y2="30"  stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#we-arr3)"/>
+    
+    <!-- Y-axis Grid Lines -->
+    <line x1="60" y1="180" x2="615" y2="180" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="60" y1="110" x2="615" y2="110" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="60" y1="40"  x2="615" y2="40"  stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    
+    <!-- X-axis Grid Lines -->
+    <line x1="200" y1="30" x2="200" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="340" y1="30" x2="340" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="480" y1="30" x2="480" y2="250" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+    
+    <!-- X-axis Labels -->
+    <text x="200" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">1</text>
+    <text x="340" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">2</text>
+    <text x="480" y="268" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#8a8680">3</text>
+    
+    <!-- Y-axis Labels -->
+    <text x="46"  y="184" text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">1</text>
+    <text x="46"  y="114" text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">2</text>
+    <text x="46"  y="44"  text-anchor="end"    font-family="DM Mono,monospace" font-size="13" fill="#8a8680">3</text>
+    
+    <!-- Perfect line w=1: Passes mathematically through all center points -->
+    <line x1="60" y1="250" x2="540" y2="10" stroke="#059669" stroke-width="3" stroke-linecap="round"/>
+    <text x="500" y="15" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669" font-weight="700">ŷ = 1·x = x (perfect!)</text>
+    
+    <!-- Data points sit exactly on the line — render them on top -->
+    <circle cx="200" cy="180" r="9" fill="#2563eb" opacity=".9"/>
+    <circle cx="340" cy="110" r="9" fill="#2563eb" opacity=".9"/>
+    <circle cx="480" cy="40"  r="9" fill="#2563eb" opacity=".9"/>
+    
+    <!-- Zero-error annotations -->
+    <text x="212" y="176" font-family="DM Mono,monospace" font-size="12" fill="#059669" font-weight="700">error = 0</text>
+    <text x="352" y="106" font-family="DM Mono,monospace" font-size="12" fill="#059669" font-weight="700">error = 0</text>
+    <text x="492" y="36"  font-family="DM Mono,monospace" font-size="12" fill="#059669" font-weight="700">error = 0</text>
+  </svg>
+  <figcaption>Figure — with w = 1, the line passes exactly through every training point. All errors are zero, so J = 0.</figcaption>
+</div>
+
+<!-- ════════════════════════════════
+     SIDE-BY-SIDE COMPARISON
+════════════════════════════════ -->
+<h3 class="we-h3">Side-by-side comparison</h3>
+
+<div class="we-compare">
+  <div class="we-compare-card bad">
+    <h4>w = 0.5 — wrong</h4>
+    <p>Line is too shallow. Every prediction is half the true value. Large errors accumulate.</p>
+    <div class="we-compare-val">J = 0.583</div>
+    <p style="font-size:12px; margin-top:6px; color:#c84b2f;">High cost → bad fit</p>
+  </div>
+  <div class="we-compare-card good">
+    <h4>w = 1 — correct</h4>
+    <p>Line passes through every point exactly. Every error is zero, so the cost is zero.</p>
+    <div class="we-compare-val">J = 0</div>
+    <p style="font-size:12px; margin-top:6px; color:#059669;">Zero cost → perfect fit</p>
+  </div>
+</div>
+
+<!-- ── J(w) bowl chart showing the two points ── -->
+<h4 class="we-h4">Seeing both on the cost curve</h4>
+<p class="we-p">
+  The chart below shows J(w) for a range of w values. Notice that it is bowl-shaped (convex)
+  and the minimum sits exactly at w = 1 where J = 0. Our two computed points are marked:
+</p>
+
+<div class="we-diagram" style="padding: 24px 24px 16px;">
+  <div class="we-chart-wrap">
+    <canvas id="weCostChart" role="img" aria-label="Bowl-shaped cost curve J(w) showing J=0.583 at w=0.5 and J=0 at w=1">Cost curve: J is 0.583 at w=0.5 and 0 at w=1.</canvas>
+  </div>
+  <figcaption>Figure — the cost function J(w) is a smooth bowl. Gradient descent would roll w downhill from 0.5 toward 1, where J reaches its minimum of 0.</figcaption>
+</div>
+
+<script>
+(function() {
+  var wVals = [], jVals = [];
+  for (var w = -0.5; w <= 2.5; w += 0.02) {
+    wVals.push(Math.round(w * 100) / 100);
+    var sum = 0;
+    [[1,1],[2,2],[3,3]].forEach(function(p) { var e = w*p[0]-p[1]; sum += e*e; });
+    jVals.push(Math.round((sum/6)*10000)/10000);
+  }
+  var ctx = document.getElementById('weCostChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: wVals,
+      datasets: [
+        {
+          label: 'J(w)',
+          data: jVals,
+          borderColor: '#c84b2f',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'w = 0.5, J ≈ 0.583',
+          data: wVals.map(function(w) { return Math.abs(w - 0.5) < 0.015 ? 0.583 : null; }),
+          borderColor: '#2563eb',
+          borderWidth: 0,
+          pointRadius: wVals.map(function(w) { return Math.abs(w - 0.5) < 0.015 ? 10 : 0; }),
+          pointBackgroundColor: '#2563eb',
+          pointStyle: 'circle',
+          showLine: false
+        },
+        {
+          label: 'w = 1, J = 0',
+          data: wVals.map(function(w) { return Math.abs(w - 1.0) < 0.015 ? 0 : null; }),
+          borderColor: '#059669',
+          borderWidth: 0,
+          pointRadius: wVals.map(function(w) { return Math.abs(w - 1.0) < 0.015 ? 10 : 0; }),
+          pointBackgroundColor: '#059669',
+          pointStyle: 'circle',
+          showLine: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      scales: {
+        x: {
+          title: { display: true, text: 'w (slope)', font: { size: 13 }, color: '#8a8680' },
+          ticks: {
+            maxTicksLimit: 13,
+            callback: function(v, i) { return wVals[i] !== undefined ? wVals[i].toFixed(1) : ''; },
+            color: '#8a8680', font: { family: 'DM Mono,monospace', size: 11 }
+          },
+          grid: { color: '#e8e5df' }
+        },
+        y: {
+          title: { display: true, text: 'J(w)', font: { size: 13 }, color: '#8a8680' },
+          min: 0,
+          ticks: { color: '#8a8680', font: { family: 'DM Mono,monospace', size: 11 } },
+          grid: { color: '#e8e5df' }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return ' J = ' + ctx.parsed.y.toFixed(3); }
+          }
+        }
+      }
+    }
+  });
+})();
+</script>
+
+<!-- Custom legend -->
+<div style="display:flex; gap:20px; justify-content:center; margin-top:10px; font-size:13px; color:#4a4740; flex-wrap:wrap;">
+  <span style="display:flex;align-items:center;gap:6px;">
+    <span style="width:28px;height:3px;background:#c84b2f;display:inline-block;border-radius:2px;"></span> J(w) cost curve
+  </span>
+  <span style="display:flex;align-items:center;gap:6px;">
+    <span style="width:10px;height:10px;border-radius:50%;background:#2563eb;display:inline-block;"></span> w=0.5, J≈0.583
+  </span>
+  <span style="display:flex;align-items:center;gap:6px;">
+    <span style="width:10px;height:10px;border-radius:50%;background:#059669;display:inline-block;"></span> w=1, J=0
+  </span>
+</div>
+
+<!-- ── KEY TAKEAWAY ── -->
+<div class="we-callout green" style="margin-top: 32px;">
+  <div class="we-callout-title">Key takeaway</div>
+  <p>
+    The cost function J(w) is a smooth bowl. <strong>Every wrong value of w gives a positive cost.</strong>
+    Only the correct w = 1 gives J = 0, where our line fits the data perfectly.
+    Gradient descent is the algorithm that finds this minimum by rolling down the bowl
+    — updating w a little at each step until it reaches the bottom.
+  </p>
+</div>
+
+</div><!-- /we-wrap -->
+</section>
+
+<!-- ── SECTION 4: GRADIENT DESCENT ── -->
+<section class="section" id="s4">
+  <div class="section-label">Section 04</div>
+  <h2>Gradient Descent — Rolling Down the Bowl</h2>
+
+  <p>Now we know that we're minimising cost function (J), but <em>how</em> do we find the minimum? We use <strong>gradient descent</strong> — one of the most important algorithms in all of machine learning. </p>
+  <p>Gradient Descent is an optimization algorithm used in linear regression to find the best-fit line for the data. It works by gradually adjusting the line’s slope and intercept to reduce the difference between actual and predicted values. This process helps the model make accurate predictions by minimizing errors step by step.
+
+</p>
+
+  <div class="callout">
+    <div class="callout-title">🏔️ The Hiking Analogy</div>
+    <p>Imagine you're standing somewhere on a hilly landscape (the J surface) and you're blindfolded. Your goal is to get to the lowest point. What do you do? You feel around with your foot, find the direction that goes <em>downhill the most steeply</em>, take a small step in that direction, and repeat. That's gradient descent.</p>
+  </div>
+
+  <h3>The Update Rules</h3>
+  <p>Most important step in Gradient Descent is to update parameters w and b. At each step, we update <strong>both</strong> w and b simultaneously using the gradient of J:</p>
+
+  
+
+  <div class="eq-block">
+    <span class="eq-label">Gradient Descent Update Rule — repeat until convergence</span>
+    <div class="equation-box">
+        $$w = w - \alpha \frac{\partial J(w,b)}{\partial w}$$
+        $$b = b - \alpha \frac{\partial J(w,b)}{\partial b}$$
+    </div>
+    
+  </div>
+      <div class="teacher-script">
+        <span class="script-label"></span>
+        Let's explain this equation/:<br>
+        <ul>
+            <li><strong>\(w = w - ...\)</strong> means 'Update my current weight to a new weight.'</li>
+            <li><strong>\(\alpha\) (Alpha)</strong> is the <strong>Learning Rate</strong>. This is how big of a step you take. If \(\alpha\) is huge, you take giant leaps and might jump right over the valley! If \(\alpha\) is tiny, you take baby steps and it will take years to reach the bottom.</li>
+            <li><strong>\(\frac{\partial J}{\partial w}\)</strong> is the <strong>Derivative</strong> (from calculus). In simple terms, this is the slope of the hill under your feet. It tells you which direction is 'down'.</li>
+        </ul>
+        🔑If the slope is positive (uphill), the formula subtracts it, moving you backwards (down) by decreasing w (move left). If the slope is negative (downhill), the double negative makes it positive, moving you forward (down) by increasing w (move right). The math naturally pushes you to the bottom!"
+    </div>
+  <p> To make the computer actually do this, we have to apply calculus to our Cost Function to find the exact derivatives. We expand those partial derivatives using the chain rule. Here is the result:</p>
+  
+
+
+  <div class="sub-eqs">
+    <div class="sub-eq">
+      <span class="var-name">Derivative with respect to w</span>
+       
+      &part;J/&part;w = <sup>1</sup>/<sub>m</sub> &Sigma; (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾) &middot; x⁽ⁱ⁾
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">Derivative w.r.t. b</span>
+      &part;J/&part;b = <sup>1</sup>/<sub>m</sub> &Sigma; (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)
+    </div>
+  </div>
+
+  <div class="callout blue">
+    
+
+  <h3>Step-by-Step Trace Through One Iteration</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-line"><div class="step-num">1</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Forward Pass — Compute All Predictions</h4>
+        <p>For every training example i = 1 to m, compute ŷ⁽ⁱ⁾ = wx⁽ⁱ⁾ + b using the <em>current</em> values of w and b.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">2</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Compute Errors — How Wrong Are We?</h4>
+        <p>For each example, compute the error: ŷ⁽ⁱ⁾ − y⁽ⁱ⁾. Some will be positive (over-predicted), some negative (under-predicted).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">3</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Compute Gradients — Which Way Is Downhill?</h4>
+        <p>Average those errors to get the gradient for b. Multiply each error by x⁽ⁱ⁾ first, then average, to get the gradient for w.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">4</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Update Both Parameters Simultaneously</h4>
+        <p>Compute <em>both</em> new values using the <em>old</em> values, then assign. This simultaneous update is important — you must not use the new w when computing the new b.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">5</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Repeat Until Convergence</h4>
+        <p>Go back to step 1. Repeat hundreds or thousands of times. Each iteration, J should decrease a little. We stop when J barely changes.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Interactive Gradient Descent Visualisation</h3>
+  <p>Watch gradient descent take steps down the cost curve. Each click is one iteration:</p>
+
+  <div class="interactive-card">
+    <h4>Gradient Descent in Action <span class="badge">Interactive</span></h4>
+    <div style="display:flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+      <button onclick="gdStep()" style="background: var(--accent); color: white; border: none; padding: 9px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit;">Take One Step ›</button>
+      <button onclick="gdRun()" id="gd-run-btn" style="background: var(--code-bg); border: 1px solid var(--line); padding: 9px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit; color: var(--ink);">Auto-Run ▶</button>
+      <button onclick="gdReset()" style="background: var(--code-bg); border: 1px solid var(--line); padding: 9px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit; color: var(--ink);">Reset ↺</button>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div>
+        <div style="font-size: 12px; color: var(--ink3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em;">Cost J over iterations</div>
+        <div style="position: relative; height: 200px;"><canvas id="gdCostChart"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: var(--ink3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em;">Line fitting the data</div>
+        <div style="position: relative; height: 200px;"><canvas id="gdLineChart"></canvas></div>
+      </div>
+    </div>
+    <div class="readout" style="margin-top: 16px;">
+      <div class="readout-row"><span class="readout-key">Iteration</span><span class="readout-val" id="gd-iter">0</span></div>
+      <div class="readout-row"><span class="readout-key">Current w</span><span class="readout-val" id="gd-w">0.00</span></div>
+      <div class="readout-row"><span class="readout-key">Current b</span><span class="readout-val" id="gd-b">0.00</span></div>
+      <div class="readout-row"><span class="readout-key">Current cost J</span><span class="readout-val" id="gd-cost">—</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SECTION 5: LEARNING RATE ── -->
+<section class="section" id="s5">
+  <div class="section-label">Section 05</div>
+  <h2>The Learning Rate α — How Big Are Your Steps?</h2>
+
+  <p>The learning rate α (alpha) is a small positive number that controls <strong>how large a step</strong> we take at each iteration. Choosing α well is critical.</p>
+
+  
+<div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 320" role="img">
+      <title>Three panels comparing too-small, just-right, and too-large learning rates</title>
+      <defs>
+        <marker id="arr4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#c84b2f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      
+      <!-- Panel dividers -->
+      <line x1="253" y1="20" x2="253" y2="300" stroke="#e8e5df" stroke-width="1"/>
+      <line x1="507" y1="20" x2="507" y2="300" stroke="#e8e5df" stroke-width="1"/>
+      
+      <!-- ── LEFT PANEL: Too small ── -->
+      <text x="126" y="44" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#1a1814">α too small</text>
+      
+      <!-- U-shape curve (bowl) -->
+      <path d="M 41 80 Q 126 400 211 80" fill="none" stroke="#e8e5df" stroke-width="2"/>
+      
+      <!-- Tiny steps converging slowly down the left side -->
+      <circle cx="46" cy="98" r="4" fill="#2563eb"/>
+      <circle cx="58" cy="138" r="4" fill="#2563eb"/>
+      <circle cx="68" cy="166" r="4" fill="#2563eb"/>
+      <circle cx="77" cy="187" r="4" fill="#2563eb"/>
+      <circle cx="84" cy="201" r="4" fill="#2563eb"/>
+      <circle cx="91" cy="212" r="4" fill="#2563eb"/>
+      <circle cx="96" cy="220" r="4" fill="#2563eb"/>
+      
+      <text x="126" y="285" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">Converges, but slowly</text>
+      <text x="126" y="300" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Many iterations needed</text>
+      
+      <!-- ── MIDDLE PANEL: Just right ── -->
+      <text x="380" y="44" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#1a1814">α just right</text>
+      
+      <!-- U-shape curve (bowl) -->
+      <path d="M 295 80 Q 380 400 465 80" fill="none" stroke="#e8e5df" stroke-width="2"/>
+      
+      <!-- Optimal steps reaching the minimum efficiently -->
+      <circle cx="300" cy="98" r="4" fill="#2563eb"/>
+      <circle cx="348" cy="217" r="4" fill="#2563eb"/>
+      <circle cx="367" cy="236" r="4" fill="#2563eb"/>
+      <circle cx="375" cy="239" r="4" fill="#2563eb"/>
+      <circle cx="380" cy="240" r="4" fill="#c84b2f"/>
+      
+      <text x="380" y="285" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">Converges efficiently</text>
+      <text x="380" y="300" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">✓ This is what we want</text>
+      
+      <!-- ── RIGHT PANEL: Too large ── -->
+      <text x="633" y="44" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#1a1814">α too large</text>
+      
+      <!-- U-shape curve (bowl) -->
+      <path d="M 548 80 Q 633 400 718 80" fill="none" stroke="#e8e5df" stroke-width="2"/>
+      
+      <!-- Diverging dashed lines drawn below the circles to indicate direction -->
+      <line x1="623" y1="238" x2="648" y2="235" stroke="#c84b2f" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr4)"/>
+      <line x1="648" y1="235" x2="610" y2="228" stroke="#c84b2f" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr4)"/>
+      <line x1="610" y1="228" x2="666" y2="216" stroke="#c84b2f" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr4)"/>
+      <line x1="666" y1="216" x2="588" y2="195" stroke="#c84b2f" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr4)"/>
+      <line x1="588" y1="195" x2="696" y2="152" stroke="#c84b2f" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr4)"/>
+      
+      <!-- Diverging steps bouncing higher and higher out of the bowl -->
+      <circle cx="623" cy="238" r="4" fill="#2563eb"/>
+      <circle cx="648" cy="235" r="4" fill="#2563eb"/>
+      <circle cx="610" cy="228" r="4" fill="#2563eb"/>
+      <circle cx="666" cy="216" r="4" fill="#2563eb"/>
+      <circle cx="588" cy="195" r="4" fill="#2563eb"/>
+      <circle cx="696" cy="152" r="4" fill="#2563eb"/>
+      
+      <text x="633" y="285" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f">Overshoots, diverges</text>
+      <text x="633" y="300" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">J increases instead of falling</text>
+    </svg>
+    <figcaption>Figure 6 — Effect of different learning rates. Too small: very slow. Just right: smooth convergence. Too large: oscillation and divergence.</figcaption>
+</div>
+
+  <div class="callout">
+    <div class="callout-title">⚠️ Choosing α in Practice</div>
+    <p>A common approach is to try values like 0.001, 0.003, 0.01, 0.03, 0.1, 0.3 and plot the cost J vs iterations. Pick the largest α that still reliably decreases J every iteration.</p>
+  </div>
+
+  <h3>What Happens at the Minimum?</h3>
+  <p>Here's something beautiful. When the algorithm finally reaches the minimum of J, the derivative &part;J/&part;w becomes <strong>exactly zero</strong>. So:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">At the minimum</span>
+    <div class="eq-main">w := w − α · <strong>0</strong> = w</div>
+    <div class="eq-note">The parameters stop changing — the algorithm has converged!</div>
+  </div>
+</section>
+
+<!-- ── SECTION 6: CONVERGENCE ── -->
+<section class="section" id="s6">
+  <div class="section-label">Section 06</div>
+  <h2>Convergence — How Do We Know We're Done?</h2>
+
+  <p>We say gradient descent has <strong>converged</strong> when the cost function J stops decreasing significantly. There are two main ways to detect this:</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-line"><div class="step-num" style="background: var(--accent2);">A</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>The Learning Curve Check</h4>
+        <p>Plot J(w, b) against the number of iterations. If it's working correctly, J should <em>decrease every single iteration</em>. When the curve flattens out and barely moves, you've converged. If J ever goes UP, your α is too large.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num" style="background: var(--accent2);">B</div></div>
+      <div class="step-body">
+        <h4>The Epsilon Check</h4>
+        <p>Pick a very small number ε (epsilon), like 0.001. If the decrease in J from one iteration to the next is less than ε, declare convergence. This is more automatic but harder to tune.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 260" role="img">
+      <title>Learning curve showing cost J decreasing over gradient descent iterations</title>
+      <defs><marker id="arr5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <line x1="60" y1="220" x2="700" y2="220" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#arr5)"/>
+      <line x1="60" y1="220" x2="60" y2="30" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#arr5)"/>
+      <text x="710" y="224" font-size="13" font-family="Plus Jakarta Sans,sans-serif" fill="#8a8680">Iterations</text>
+      <text x="42" y="26" font-size="13" font-family="Plus Jakarta Sans,sans-serif" fill="#8a8680">J</text>
+      <!-- Learning curve: steep drop then leveling off -->
+      <path d="M 80 190 C 130 140 180 95 250 68 S 380 52 500 46 S 620 44 700 44" fill="none" stroke="#c84b2f" stroke-width="3" stroke-linecap="round"/>
+      <!-- Annotations -->
+      <text x="155" y="135" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f">Fast initial drop</text>
+      <line x1="160" y1="140" x2="155" y2="165" stroke="#c84b2f" stroke-width="1" stroke-dasharray="3 2"/>
+      <line x1="550" y1="46" x2="550" y2="220" stroke="#059669" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="554" y="100" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">Convergence</text>
+      <text x="554" y="114" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">zone</text>
+      <!-- Final flat region annotation -->
+      <text x="600" y="38" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">plateau</text>
+    </svg>
+    <figcaption>Figure 7 — A healthy learning curve. J drops steeply at first, then gradually flattens. The green line marks where the algorithm has effectively converged.</figcaption>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">✅ Good News for Linear Regression</div>
+    <p>Because the cost function for linear regression is <strong>convex</strong> (bowl-shaped, no local minima), gradient descent will <em>always</em> converge to the global minimum, as long as α is not too large. You never get stuck in a bad local minimum.</p>
+  </div>
+</section>
+
+<!-- ── SECTION 7: FULL SUMMARY ── -->
+<section class="section" id="s7">
+  <div class="section-label">Section 07</div>
+  <h2>Putting It All Together — The Full Algorithm</h2>
+
+  <p>Here is the complete linear regression training algorithm, written out as clearly as possible:</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 520" role="img">
+      <title>Complete flowchart of the linear regression training algorithm</title>
+      <defs><marker id="arr6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- Step 1: Initialise -->
+      <rect x="240" y="20" width="280" height="56" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="380" y="43" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="700" font-size="13" fill="#1a1814">Initialise</text>
+      <text x="380" y="62" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#2563eb">Set w=0, b=0, choose α</text>
+      <!-- Arrow -->
+      <line x1="380" y1="76" x2="380" y2="112" stroke="#8a8680" stroke-width="1.5" marker-end="url(#arr6)"/>
+      <!-- Step 2: Compute predictions -->
+      <rect x="200" y="114" width="360" height="56" rx="10" fill="#faf9f6" stroke="#c8c5bf" stroke-width="1.5"/>
+      <text x="380" y="137" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="700" font-size="13" fill="#1a1814">Compute predictions (Forward pass)</text>
+      <text x="380" y="156" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#4a4740">ŷ⁽ⁱ⁾ = wx⁽ⁱ⁾ + b  for all i</text>
+      <!-- Arrow -->
+      <line x1="380" y1="170" x2="380" y2="206" stroke="#8a8680" stroke-width="1.5" marker-end="url(#arr6)"/>
+      <!-- Step 3: Cost function -->
+      <rect x="200" y="208" width="360" height="56" rx="10" fill="#faf9f6" stroke="#c8c5bf" stroke-width="1.5"/>
+      <text x="380" y="231" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="700" font-size="13" fill="#1a1814">Compute Cost</text>
+      <text x="380" y="250" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#4a4740">J = (1/2m) Σ(ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)²</text>
+      <!-- Arrow -->
+      <line x1="380" y1="264" x2="380" y2="300" stroke="#8a8680" stroke-width="1.5" marker-end="url(#arr6)"/>
+      <!-- Step 4: Gradients -->
+      <rect x="170" y="302" width="420" height="70" rx="10" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="380" y="324" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="700" font-size="13" fill="#1a1814">Compute Gradients</text>
+      <text x="380" y="342" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#c84b2f">dw = (1/m) Σ(ŷ⁽ⁱ⁾−y⁽ⁱ⁾)·x⁽ⁱ⁾</text>
+      <text x="380" y="360" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#c84b2f">db = (1/m) Σ(ŷ⁽ⁱ⁾−y⁽ⁱ⁾)</text>
+      <!-- Arrow -->
+      <line x1="380" y1="372" x2="380" y2="408" stroke="#8a8680" stroke-width="1.5" marker-end="url(#arr6)"/>
+      <!-- Step 5: Update -->
+      <rect x="200" y="410" width="360" height="56" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="380" y="433" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="700" font-size="13" fill="#1a1814">Update Parameters (simultaneously)</text>
+      <text x="380" y="452" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">w := w − α·dw   b := b − α·db</text>
+      <!-- Arrow down and loop back left -->
+      <line x1="380" y1="466" x2="380" y2="490" stroke="#8a8680" stroke-width="1.5"/>
+      <!-- Decision: converged? -->
+      <!-- Diamond -->
+      <polygon points="380,492 450,510 380,526 310,510" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="380" y="513" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="600" fill="#7c3aed">Converged?</text>
+      <!-- No → loop back -->
+      <line x1="310" y1="510" x2="110" y2="510" stroke="#8a8680" stroke-width="1.5"/>
+      <line x1="110" y1="510" x2="110" y2="142" stroke="#8a8680" stroke-width="1.5"/>
+      <line x1="110" y1="142" x2="198" y2="142" stroke="#8a8680" stroke-width="1.5" marker-end="url(#arr6)"/>
+      <text x="200" y="506" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">No → repeat</text>
+      <!-- Yes -->
+      <line x1="450" y1="510" x2="560" y2="510" stroke="#059669" stroke-width="1.5" marker-end="url(#arr6)"/>
+      <text x="500" y="504" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">Yes</text>
+      <rect x="560" y="494" width="130" height="32" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="625" y="514" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">Done! Use w*, b*</text>
+    </svg>
+    <figcaption>Figure 8 — The complete gradient descent algorithm for linear regression, from initialisation to convergence.</figcaption>
+  </div>
+
+  <h3>Key Concepts Recap</h3>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="s-icon">📊</div>
+      <div class="s-title">Training Set</div>
+      <div class="s-desc">m examples of (x, y) pairs. x is the input feature. y is the target output.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">📏</div>
+      <div class="s-title">Model ŷ = wx + b</div>
+      <div class="s-desc">A straight line parameterised by w (slope) and b (intercept).</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">🎯</div>
+      <div class="s-title">Cost Function J</div>
+      <div class="s-desc">Mean squared error — measures how badly our current line fits. Lower is better.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">⛰️</div>
+      <div class="s-title">Gradient Descent</div>
+      <div class="s-desc">Iteratively nudges w and b in the direction that decreases J, using the derivative.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">⚡</div>
+      <div class="s-title">Learning Rate α</div>
+      <div class="s-desc">Controls step size. Too small → slow. Too large → diverges. Must be tuned carefully.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">✅</div>
+      <div class="s-title">Convergence</div>
+      <div class="s-desc">When J stops decreasing, we've found the best w* and b*. For linear regression, this is always the global minimum.</div>
+    </div>
+  </div>
+
+  <div class="eq-block" style="margin-top: 32px;">
+    <span class="eq-label">The Complete Algorithm in Three Lines</span>
+    <div style="font-family: var(--mono); font-size: 1rem; color: var(--ink); text-align: left; line-height: 2.2;">
+      <div>ŷ⁽ⁱ⁾ = wx⁽ⁱ⁾ + b &nbsp;&nbsp;<span style="color: var(--ink3); font-size: 12px;">← forward pass</span></div>
+      <div>J(w,b) = (1/2m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)² &nbsp;&nbsp;<span style="color: var(--ink3); font-size: 12px;">← cost</span></div>
+      <div>w := w − α · ∂J/∂w &nbsp;;&nbsp; b := b − α · ∂J/∂b &nbsp;&nbsp;<span style="color: var(--ink3); font-size: 12px;">← update</span></div>
+    </div>
+  </div>
+</section>
+<style>
+/* ── wrapper ── */
+.sq-section {
+  max-width: 860px; margin: 80px auto 0; padding: 0 24px 80px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* ── section header ── */
+.sq-header { border-top: 1px solid #e8e5df; padding-top: 64px; margin-bottom: 40px; }
+.sq-tag {
+  font-family: 'DM Mono', monospace; font-size: 11px; color: #c84b2f;
+  letter-spacing: .12em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.sq-tag::after { content: ''; flex: 1; height: 1px; background: #e8e5df; }
+.sq-title {
+  font-family: 'Lora', Georgia, serif; font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700; color: #1a1814; margin: 0 0 12px; line-height: 1.3;
+}
+.sq-subtitle { font-size: 15px; color: #4a4740; line-height: 1.75; margin: 0 0 36px; }
+
+/* ── difficulty legend ── */
+.sq-legend {
+  display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px;
+}
+.sq-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600;
+}
+.sq-pill-dot { width: 7px; height: 7px; border-radius: 50%; }
+.sq-pill.easy   { background: #ecfdf5; color: #065f46; }
+.sq-pill.medium { background: #fffbeb; color: #92400e; }
+.sq-pill.hard   { background: #fef2f2; color: #991b1b; }
+.sq-pill.easy   .sq-pill-dot { background: #059669; }
+.sq-pill.medium .sq-pill-dot { background: #d97706; }
+.sq-pill.hard   .sq-pill-dot { background: #dc2626; }
+
+/* ── category label ── */
+.sq-cat-label {
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; color: #8a8680; margin: 40px 0 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.sq-cat-label::after { content: ''; flex: 1; height: 1px; background: #e8e5df; }
+
+/* ── question card ── */
+.sq-card {
+  background: #ffffff; border: 1px solid #e8e5df; border-radius: 14px;
+  padding: 22px 24px; margin-bottom: 14px;
+  transition: box-shadow .18s, border-color .18s;
+}
+.sq-card:hover { box-shadow: 0 2px 14px rgba(0,0,0,.06); border-color: #d0cdc6; }
+
+/* ── card top row ── */
+.sq-card-top {
+  display: flex; align-items: flex-start; gap: 14px; cursor: pointer;
+  user-select: none;
+}
+.sq-qnum {
+  font-family: 'DM Mono', monospace; font-size: 12px; color: #8a8680;
+  min-width: 26px; padding-top: 2px;
+}
+.sq-qtext {
+  flex: 1; font-size: 15px; color: #1a1814; line-height: 1.75; font-weight: 500;
+}
+.sq-badges { display: flex; gap: 6px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+.sq-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+}
+.sq-badge.easy   { background: #ecfdf5; color: #065f46; }
+.sq-badge.medium { background: #fffbeb; color: #92400e; }
+.sq-badge.hard   { background: #fef2f2; color: #991b1b; }
+.sq-badge.concept { background: #eff6ff; color: #1e40af; }
+.sq-badge.math    { background: #f5f3ff; color: #4c1d95; }
+.sq-toggle {
+  font-size: 16px; color: #8a8680; transition: transform .22s;
+  line-height: 1; flex-shrink: 0; padding-top: 2px;
+}
+.sq-card.open .sq-toggle { transform: rotate(180deg); }
+
+/* ── hint / answer area ── */
+.sq-hint {
+  display: none; margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid #e8e5df;
+}
+.sq-card.open .sq-hint { display: block; }
+.sq-hint-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+  color: #c84b2f; margin-bottom: 8px;
+}
+.sq-hint p { font-size: 14px; color: #4a4740; line-height: 1.75; margin: 0 0 10px; }
+.sq-hint p:last-child { margin-bottom: 0; }
+.sq-eq {
+  background: #f0ede6; border-radius: 8px; padding: 10px 16px;
+  font-family: 'DM Mono', monospace; font-size: 13px; color: #1a1814;
+  margin: 10px 0; display: block;
+}
+
+/* ── bottom note ── */
+.sq-footnote {
+  margin-top: 40px; padding: 18px 22px;
+  background: #faf9f6; border: 1px solid #e8e5df; border-radius: 12px;
+  font-size: 14px; color: #4a4740; line-height: 1.75;
+}
+.sq-footnote strong { color: #1a1814; }
+</style>
+
+<div class="sq-section">
+
+  <div class="sq-header">
+    <div class="sq-tag">Practice Questions</div>
+    <h2 class="sq-title">Think &amp; Answer</h2>
+    <p class="sq-subtitle">
+      Work through these questions on your own before revealing the hints.
+      They cover everything from basic intuition to calculation — exactly the
+      kinds of questions you'd see in an interview or exam on linear regression.
+    </p>
+
+    <div class="sq-legend">
+      <span class="sq-pill easy"><span class="sq-pill-dot"></span> Easy</span>
+      <span class="sq-pill medium"><span class="sq-pill-dot"></span> Medium</span>
+      <span class="sq-pill hard"><span class="sq-pill-dot"></span> Hard</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════
+       CATEGORY A — INTUITION
+  ════════════════════════ -->
+  <div class="sq-cat-label">Part A — Conceptual &amp; Intuition</div>
+
+  <!-- Q1 -->
+  <div class="sq-card" id="sq1">
+    <div class="sq-card-top" onclick="sqToggle('sq1')">
+      <span class="sq-qnum">Q1</span>
+      <span class="sq-qtext">In your own words, what is the overall goal of linear regression? What are we trying to find, and why?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Hint</div>
+      <p>Think about what "training" means — you are given many (x, y) pairs where you already know the answer. The goal is to find a straight line (defined by w and b) such that when you plug in any x, the output ŷ is as close as possible to the true y.</p>
+      <p>In one sentence: we are searching for the values of <strong>w</strong> (slope) and <strong>b</strong> (intercept) that minimise the total prediction error across all training examples.</p>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="sq-card" id="sq2">
+    <div class="sq-card-top" onclick="sqToggle('sq2')">
+      <span class="sq-qnum">Q2</span>
+      <span class="sq-qtext">What does the cost function J(w, b) measure? Why do we square the errors instead of just adding them up?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Hint</div>
+      <p>J measures <em>how wrong</em> our current line is across the entire training set. A large J means a bad fit; J = 0 means a perfect fit.</p>
+      <p>We square the errors for two reasons: (1) positive and negative errors would cancel out if we simply added them — squaring makes everything positive. (2) Squaring punishes large errors more than small ones, which encourages the algorithm to avoid big mistakes.</p>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="sq-card" id="sq3">
+    <div class="sq-card-top" onclick="sqToggle('sq3')">
+      <span class="sq-qnum">Q3</span>
+      <span class="sq-qtext">Explain gradient descent using the hiking analogy. What does the "slope of the hill" correspond to mathematically?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Hint</div>
+      <p>Imagine standing blindfolded on a hilly landscape (the J surface). You feel the ground under your feet, find the direction that slopes downward the most steeply, take a small step that way, and repeat.</p>
+      <p>The "steepness" corresponds mathematically to the <strong>partial derivative</strong> ∂J/∂w (and ∂J/∂b). A large derivative = steep slope = take a bigger corrective step. At the bottom of the bowl the derivative is exactly zero, so the update becomes zero and the algorithm stops.</p>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="sq-card" id="sq4">
+    <div class="sq-card-top" onclick="sqToggle('sq4')">
+      <span class="sq-qnum">Q4</span>
+      <span class="sq-qtext">What happens to gradient descent if the learning rate α is too large? What if it is too small? How would you detect each problem?</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Hint</div>
+      <p><strong>Too large:</strong> each step overshoots the minimum. The algorithm bounces back and forth, and J can actually <em>increase</em> from one iteration to the next. You detect this by plotting the learning curve — if J goes up at any point, α is too large.</p>
+      <p><strong>Too small:</strong> the algorithm converges, but takes an enormous number of iterations. You detect this by noticing the learning curve is falling very slowly and the parameters barely change each step.</p>
+      <p>A practical strategy: try α = 0.001, 0.003, 0.01, 0.03, 0.1 and pick the largest value where J reliably decreases every iteration.</p>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="sq-card" id="sq5">
+    <div class="sq-card-top" onclick="sqToggle('sq5')">
+      <span class="sq-qnum">Q5</span>
+      <span class="sq-qtext">Why must we update w and b <em>simultaneously</em> in gradient descent, rather than updating w first and then using the new w to update b?</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Hint</div>
+      <p>Both update rules must use the <em>same</em> (old) values of w and b when computing the gradients. If you update w first, then the new w would change the gradient calculation for b — you'd be descending on a slightly different surface than intended.</p>
+      <p>The correct pattern is:</p>
+      <code class="sq-eq">temp_w = w − α · ∂J/∂w  (using old w and old b)
+temp_b = b − α · ∂J/∂b  (using old w and old b)
+w = temp_w
+b = temp_b</code>
+      <p>Using the new w when computing the b update is a subtle bug that can cause incorrect convergence.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════
+       CATEGORY B — MATHS
+  ════════════════════════ -->
+  <div class="sq-cat-label">Part B — Mathematical &amp; Calculation</div>
+
+  <!-- Q6 -->
+  <div class="sq-card" id="sq6">
+    <div class="sq-card-top" onclick="sqToggle('sq6')">
+      <span class="sq-qnum">Q6</span>
+      <span class="sq-qtext">Given the model ŷ = wx + b with w = 2 and b = 1, what is the prediction for x = 4? If the true value is y = 10, what is the error and the squared error?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Step-by-step solution</div>
+      <p><strong>Step 1 — prediction:</strong></p>
+      <code class="sq-eq">ŷ = 2 × 4 + 1 = 9</code>
+      <p><strong>Step 2 — error:</strong></p>
+      <code class="sq-eq">error = ŷ − y = 9 − 10 = −1</code>
+      <p><strong>Step 3 — squared error:</strong></p>
+      <code class="sq-eq">(ŷ − y)² = (−1)² = 1</code>
+      <p>The model under-predicted by 1 unit. The squared error is 1.</p>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="sq-card" id="sq7">
+    <div class="sq-card-top" onclick="sqToggle('sq7')">
+      <span class="sq-qnum">Q7</span>
+      <span class="sq-qtext">You have two training examples: (x⁽¹⁾, y⁽¹⁾) = (1, 2) and (x⁽²⁾, y⁽²⁾) = (3, 6). With w = 1 and b = 0, calculate the cost J(1, 0) step by step.</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Step-by-step solution</div>
+      <p><strong>Predictions</strong> (ŷ = 1·x + 0):</p>
+      <code class="sq-eq">ŷ⁽¹⁾ = 1 × 1 = 1 &nbsp;&nbsp; ŷ⁽²⁾ = 1 × 3 = 3</code>
+      <p><strong>Errors</strong> (ŷ − y):</p>
+      <code class="sq-eq">error⁽¹⁾ = 1 − 2 = −1 &nbsp;&nbsp; error⁽²⁾ = 3 − 6 = −3</code>
+      <p><strong>Squared errors:</strong></p>
+      <code class="sq-eq">(−1)² = 1 &nbsp;&nbsp; (−3)² = 9</code>
+      <p><strong>Sum and divide by 2m</strong> (m = 2, so 2m = 4):</p>
+      <code class="sq-eq">J(1, 0) = (1 + 9) / 4 = 10 / 4 = 2.5</code>
+      <p>The model with w = 1 predicts half the true values — it is systematically too low. Try w = 2 to see if J improves!</p>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="sq-card" id="sq8">
+    <div class="sq-card-top" onclick="sqToggle('sq8')">
+      <span class="sq-qnum">Q8</span>
+      <span class="sq-qtext">For the dataset in Q7, verify that w = 2, b = 0 gives J = 0. Then explain <em>why</em> this must be the case.</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Step-by-step solution</div>
+      <p><strong>Predictions</strong> (ŷ = 2x):</p>
+      <code class="sq-eq">ŷ⁽¹⁾ = 2 × 1 = 2 = y⁽¹⁾ ✓ &nbsp;&nbsp; ŷ⁽²⁾ = 2 × 3 = 6 = y⁽²⁾ ✓</code>
+      <p><strong>Errors and squared errors:</strong></p>
+      <code class="sq-eq">error⁽¹⁾ = 2 − 2 = 0 → 0² = 0
+error⁽²⁾ = 6 − 6 = 0 → 0² = 0</code>
+      <p><strong>Cost:</strong></p>
+      <code class="sq-eq">J(2, 0) = (0 + 0) / 4 = 0</code>
+      <p>Both points lie exactly on the line y = 2x, so every prediction is perfect. When every error is zero, the sum of squared errors is zero, and dividing zero by anything still gives zero.</p>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="sq-card" id="sq9">
+    <div class="sq-card-top" onclick="sqToggle('sq9')">
+      <span class="sq-qnum">Q9</span>
+      <span class="sq-qtext">With one training example (x = 2, y = 4) and b = 0, write out the gradient descent update for w after one step. Use α = 0.1 and start from w = 0. What is w after the update?</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Step-by-step solution</div>
+      <p><strong>Step 1 — prediction at w = 0:</strong></p>
+      <code class="sq-eq">ŷ = 0 × 2 = 0</code>
+      <p><strong>Step 2 — error:</strong></p>
+      <code class="sq-eq">ŷ − y = 0 − 4 = −4</code>
+      <p><strong>Step 3 — gradient</strong> (with m = 1):</p>
+      <code class="sq-eq">∂J/∂w = (1/m) × (ŷ − y) × x = (1/1) × (−4) × 2 = −8</code>
+      <p><strong>Step 4 — update w:</strong></p>
+      <code class="sq-eq">w := w − α · ∂J/∂w = 0 − 0.1 × (−8) = 0 + 0.8 = 0.8</code>
+      <p>After one step, w has moved from 0 to 0.8. The gradient was negative (J was decreasing as w increased), so we moved in the positive direction — correct! If we keep iterating, w will converge toward 2.</p>
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="sq-card" id="sq10">
+    <div class="sq-card-top" onclick="sqToggle('sq10')">
+      <span class="sq-qnum">Q10</span>
+      <span class="sq-qtext">At the minimum of J, the derivative ∂J/∂w = 0. Prove this means gradient descent will stop updating w — that is, once you reach the optimal w*, the algorithm will never move away from it.</span>
+      <div class="sq-badges">
+        <span class="sq-badge hard">Hard</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Hint &amp; solution</div>
+      <p>The update rule is:</p>
+      <code class="sq-eq">w := w − α · ∂J/∂w</code>
+      <p>At the minimum w*, the derivative is exactly zero by definition of a minimum (the tangent line to J(w) is flat there). So the update becomes:</p>
+      <code class="sq-eq">w* := w* − α · 0 = w* − 0 = w*</code>
+      <p>The new value equals the old value — w does not change. The same logic applies to b. This is a beautiful property of gradient descent: it <em>automatically</em> stops when it reaches the minimum, because the slope of the cost surface is zero there. No explicit "stop" condition on the parameters is needed — though in practice we still stop after a fixed number of iterations or when the reduction in J is negligibly small.</p>
+    </div>
+  </div>
+
+  <!-- ── footnote ── -->
+  <div class="sq-footnote">
+    <strong>Tip for students:</strong> Try to answer each question fully in your own words before clicking the hint. Writing out your reasoning — even if it's wrong — is the fastest way to find gaps in your understanding. For the calculation questions, work through them on paper first, then check against the hint step by step.
+  </div>
+
+</div><!-- /sq-section -->
+
+<script>
+function sqToggle(id) {
+  var card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+</script>
+
+<footer>
+  <p>Inspired by Andrew Ng's Machine Learning Specialisation · Built for students who want deep intuition, not just formulas.</p>
+  <p>Prepared by: Sohaib Abdullah</p>
+</footer>
+
+</div><!-- /page -->
+
+<script>
+const trainX = [600,750,900,1050,1200,1350,1500,1650,1800,1950,2100,2250];
+const trainY = [90,115,138,162,195,218,248,262,295,318,342,370];
+
+/* ── Model Explorer Chart ── */
+const modelCtx = document.getElementById('modelChart').getContext('2d');
+function lineData(w, b) {
+  const xs = [400, 2400];
+  return { x: xs, y: xs.map(x => w*x + b) };
+}
+let modelChart = new Chart(modelCtx, {
+  type: 'scatter',
+  data: {
+    datasets: [
+      { label: 'Training data', data: trainX.map((x,i)=>({x,y:trainY[i]})), backgroundColor: '#2563eb', pointRadius: 5 },
+      { label: 'Model line', type: 'line', data: [{x:400,y:0},{x:2400,y:0}], borderColor: '#c84b2f', borderWidth: 2.5, pointRadius: 0, fill: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, animation: { duration: 100 },
+    scales: {
+      x: { min: 400, max: 2600, title: { display: false }, grid: { color: '#e8e5df' } },
+      y: { min: 0, max: 500, title: { display: false }, grid: { color: '#e8e5df' } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+function updateModel() {
+  const w = parseFloat(document.getElementById('w-slider').value);
+  const b = parseFloat(document.getElementById('b-slider').value);
+  document.getElementById('w-val').textContent = w.toFixed(2);
+  document.getElementById('b-val').textContent = b.toFixed(0);
+  const ld = lineData(w, b);
+  modelChart.data.datasets[1].data = [{x:ld.x[0],y:ld.y[0]},{x:ld.x[1],y:ld.y[1]}];
+  modelChart.update();
+  document.getElementById('model-eq').textContent = `ŷ = ${w.toFixed(2)}x + ${b.toFixed(0)}`;
+  const pred = w*1500 + b;
+  document.getElementById('model-pred').textContent = `ŷ = $${Math.round(pred)}k`;
+}
+document.getElementById('w-slider').addEventListener('input', updateModel);
+document.getElementById('b-slider').addEventListener('input', updateModel);
+updateModel();
+
+/* ── Gradient Descent Charts ── */
+let gdW = 0, gdB = 0, gdAlpha = 0.0001, gdIter = 0;
+let gdCostHistory = [], gdRunning = false, gdInterval = null;
+
+const gdCostCtx = document.getElementById('gdCostChart').getContext('2d');
+const gdLineCtx = document.getElementById('gdLineChart').getContext('2d');
+
+let gdCostChart = new Chart(gdCostCtx, {
+  type: 'line',
+  data: { labels: [], datasets: [{ data: [], borderColor: '#c84b2f', borderWidth: 2, pointRadius: 0, fill: false }] },
+  options: {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    scales: { x: { display: false }, y: { min: 0, grid: { color: '#e8e5df' } } },
+    plugins: { legend: { display: false } }
+  }
+});
+let gdLineChart = new Chart(gdLineCtx, {
+  type: 'scatter',
+  data: {
+    datasets: [
+      { data: trainX.map((x,i)=>({x,y:trainY[i]})), backgroundColor: '#2563eb', pointRadius: 4 },
+      { type: 'line', data: [{x:400,y:0},{x:2400,y:0}], borderColor: '#c84b2f', borderWidth: 2, pointRadius: 0, fill: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    scales: { x: { min:400, max:2400, display: false }, y: { min:0, max:450, display: false } },
+    plugins: { legend: { display: false } }
+  }
+});
+
+function computeCost(w, b) {
+  let sum = 0, m = trainX.length;
+  for (let i = 0; i < m; i++) { const e = (w*trainX[i]+b) - trainY[i]; sum += e*e; }
+  return sum / (2 * m);
+}
+function computeGrads(w, b) {
+  let dw = 0, db = 0; const m = trainX.length;
+  for (let i = 0; i < m; i++) { const e = (w*trainX[i]+b) - trainY[i]; dw += e*trainX[i]; db += e; }
+  return { dw: dw/m, db: db/m };
+}
+function gdStep() {
+  const { dw, db } = computeGrads(gdW, gdB);
+  gdW -= gdAlpha * dw;
+  gdB -= gdAlpha * db;
+  gdIter++;
+  const cost = computeCost(gdW, gdB);
+  gdCostHistory.push(cost);
+  if (gdCostHistory.length > 200) gdCostHistory.shift();
+  gdCostChart.data.labels = gdCostHistory.map((_,i)=>i);
+  gdCostChart.data.datasets[0].data = gdCostHistory;
+  gdCostChart.update();
+  gdLineChart.data.datasets[1].data = [{x:400,y:gdW*400+gdB},{x:2400,y:gdW*2400+gdB}];
+  gdLineChart.update();
+  document.getElementById('gd-iter').textContent = gdIter;
+  document.getElementById('gd-w').textContent = gdW.toFixed(4);
+  document.getElementById('gd-b').textContent = gdB.toFixed(4);
+  document.getElementById('gd-cost').textContent = cost.toFixed(2);
+}
+function gdRun() {
+  if (gdRunning) {
+    clearInterval(gdInterval); gdRunning = false;
+    document.getElementById('gd-run-btn').textContent = 'Auto-Run ▶';
+  } else {
+    gdRunning = true;
+    document.getElementById('gd-run-btn').textContent = 'Pause ⏸';
+    gdInterval = setInterval(() => { gdStep(); if (gdIter >= 2000) { clearInterval(gdInterval); gdRunning=false; document.getElementById('gd-run-btn').textContent='Auto-Run ▶'; }}, 50);
+  }
+}
+function gdReset() {
+  clearInterval(gdInterval); gdRunning = false;
+  gdW = 0; gdB = 0; gdIter = 0; gdCostHistory = [];
+  document.getElementById('gd-run-btn').textContent = 'Auto-Run ▶';
+  gdCostChart.data.labels = []; gdCostChart.data.datasets[0].data = []; gdCostChart.update();
+  gdLineChart.data.datasets[1].data = [{x:400,y:0},{x:2400,y:0}]; gdLineChart.update();
+  document.getElementById('gd-iter').textContent = '0';
+  document.getElementById('gd-w').textContent = '0.00';
+  document.getElementById('gd-b').textContent = '0.00';
+  document.getElementById('gd-cost').textContent = '—';
+}
+</script>
+
+
+
+</body>
+</html>

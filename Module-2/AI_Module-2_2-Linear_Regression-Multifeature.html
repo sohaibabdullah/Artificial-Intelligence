@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 2.2 — Multiple Features, Feature Scaling & Polynomial Regression</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --ink: #1a1814; --ink2: #4a4740; --ink3: #8a8680;
+  --line: #e8e5df; --accent: #c84b2f; --accent2: #2563eb; --accent3: #059669; --accent4: #7c3aed;
+  --yellow: #f59e0b; --code-bg: #f0ede6;
+  --serif: 'Lora', Georgia, serif; --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace; --r: 12px; --shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;font-size:16px;}
+.page{max-width:860px;margin:0 auto;padding:0 24px 80px;}
+
+/* Hero */
+.hero{padding:72px 0 56px;border-bottom:1px solid var(--line);margin-bottom:64px;}
+.hero-tag{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:40px;padding:4px 14px;display:inline-block;margin-bottom:24px;}
+.hero h1{font-family:var(--serif);font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.2;margin-bottom:20px;}
+.hero p{font-size:1.1rem;color:var(--ink2);max-width:580px;line-height:1.8;}
+.toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:40px;}
+.toc a{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;text-decoration:none;font-size:13px;font-weight:500;color:var(--ink2);display:flex;align-items:center;gap:8px;transition:border-color .2s,color .2s,transform .15s;}
+.toc a:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px);}
+.toc-num{font-family:var(--mono);font-size:11px;color:var(--ink3);min-width:18px;}
+
+/* Sections */
+.section{margin-bottom:80px;}
+.section-label{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--line);}
+h2{font-family:var(--serif);font-size:clamp(1.5rem,3vw,2rem);font-weight:700;margin-bottom:20px;line-height:1.3;}
+h3{font-family:var(--serif);font-size:1.25rem;font-weight:600;margin:32px 0 12px;color:var(--ink);}
+p{color:var(--ink2);margin-bottom:16px;}
+p:last-child{margin-bottom:0;}
+strong{color:var(--ink);font-weight:600;}
+ul,ol{color:var(--ink2);padding-left:24px;margin-bottom:16px;}
+li{margin-bottom:8px;}
+
+/* Callouts */
+.callout{border-left:3px solid var(--accent);background:#fef6f4;border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:24px 0;}
+.callout.blue{border-color:var(--accent2);background:#eff6ff;}
+.callout.green{border-color:var(--accent3);background:#ecfdf5;}
+.callout.purple{border-color:var(--accent4);background:#f5f3ff;}
+.callout.yellow{border-color:var(--yellow);background:#fffbeb;}
+.callout-title{font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;color:var(--accent);}
+.callout.blue .callout-title{color:var(--accent2);}
+.callout.green .callout-title{color:var(--accent3);}
+.callout.purple .callout-title{color:var(--accent4);}
+.callout.yellow .callout-title{color:#92400e;}
+.callout p{color:var(--ink);margin-bottom:0;font-size:15px;}
+
+/* Equations */
+.eq-block{background:var(--code-bg);border-radius:var(--r);padding:20px 28px;margin:20px 0;font-family:var(--mono);text-align:center;border:1px solid var(--line);overflow-x:auto;}
+.eq-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);display:block;margin-bottom:8px;font-family:var(--sans);}
+.eq-main{font-size:1.25rem;color:var(--ink);font-weight:500;line-height:2;}
+.eq-note{font-size:12px;color:var(--ink3);margin-top:10px;font-family:var(--sans);}
+
+/* Variable table */
+.var-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+.var-table th{background:var(--code-bg);padding:10px 14px;text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);border-bottom:1px solid var(--line);}
+.var-table td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top;}
+.var-table td:first-child{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500;}
+.var-table tr:last-child td{border-bottom:none;}
+
+/* Diagram card */
+.diagram-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;margin:28px 0;box-shadow:var(--shadow);overflow:hidden;}
+.diagram-card figcaption{font-size:13px;color:var(--ink3);text-align:center;margin-top:14px;font-style:italic;}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:0;margin:28px 0;}
+.step{display:flex;gap:20px;position:relative;padding-bottom:32px;}
+.step:last-child{padding-bottom:0;}
+.step-line{display:flex;flex-direction:column;align-items:center;}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--accent);color:white;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);}
+.step-num.blue{background:var(--accent2);}
+.step-num.green{background:var(--accent3);}
+.step-connector{width:2px;flex:1;background:var(--line);margin-top:8px;}
+.step:last-child .step-connector{display:none;}
+.step-body{padding-top:4px;flex:1;}
+.step-body h4{font-weight:700;font-size:1rem;margin-bottom:8px;color:var(--ink);}
+.step-body p{font-size:15px;color:var(--ink2);margin-bottom:8px;}
+
+/* Mini equations */
+.mini-eq{background:var(--code-bg);border-radius:8px;padding:10px 16px;font-family:var(--mono);font-size:13px;color:var(--ink);margin:8px 0;display:block;border:1px solid var(--line);}
+.mini-eq.red{background:#fef2f0;color:var(--accent);border-color:#fdd9d0;}
+.mini-eq.green{background:#ecfdf5;color:var(--accent3);border-color:#a7f3d0;}
+.mini-eq.blue{background:#eff6ff;color:var(--accent2);border-color:#bfdbfe;}
+
+/* Summary grid */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin:24px 0;}
+.summary-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:8px;}
+.summary-card .s-icon{font-size:22px;}
+.summary-card .s-title{font-weight:700;font-size:14px;color:var(--ink);}
+.summary-card .s-desc{font-size:13px;color:var(--ink2);line-height:1.6;}
+
+/* Sub-eqs grid */
+.sub-eqs{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;}
+.sub-eq{flex:1;min-width:180px;background:var(--code-bg);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px;text-align:center;font-family:var(--mono);font-size:1rem;}
+.sub-eq .var-name{font-size:11px;color:var(--ink3);font-family:var(--sans);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;}
+
+/* Compare grid */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0;}
+.compare-card{border-radius:12px;padding:18px 20px;border:1px solid var(--line);background:var(--card);}
+.compare-card.bad{border-color:#fecaca;background:#fff5f5;}
+.compare-card.good{border-color:#6ee7b7;background:#f0fdf9;}
+.compare-card h4{font-size:14px;font-weight:700;margin:0 0 8px;}
+.compare-card.bad h4{color:var(--accent);}
+.compare-card.good h4{color:var(--accent3);}
+.compare-card p{font-size:13px;color:var(--ink2);margin:0;line-height:1.65;}
+
+/* Matrix display */
+.matrix-wrap{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin:20px 0;}
+.matrix{display:inline-flex;flex-direction:column;gap:4px;position:relative;padding:8px 18px;}
+.matrix::before,.matrix::after{content:'';position:absolute;top:0;bottom:0;width:3px;border:2px solid var(--ink2);}
+.matrix::before{left:0;border-right:none;border-radius:3px 0 0 3px;}
+.matrix::after{right:0;border-left:none;border-radius:0 3px 3px 0;}
+.matrix-row{display:flex;gap:14px;justify-content:center;}
+.matrix-cell{font-family:var(--mono);font-size:13px;color:var(--ink);min-width:32px;text-align:center;padding:2px 0;}
+.matrix-cell.hi{color:var(--accent);font-weight:600;}
+.matrix-cell.blue{color:var(--accent2);font-weight:600;}
+.matrix-cell.green{color:var(--accent3);font-weight:600;}
+.matrix-label{font-family:var(--sans);font-size:12px;color:var(--ink3);text-align:center;margin-top:6px;}
+.matrix-name{font-family:var(--mono);font-size:1rem;color:var(--ink);align-self:center;}
+.times-sign{font-size:1.3rem;color:var(--ink3);align-self:center;}
+
+/* Feature table */
+.feat-table{width:100%;border-collapse:collapse;font-size:14px;margin:20px 0;}
+.feat-table th{background:var(--code-bg);padding:10px 14px;text-align:center;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);border-bottom:1px solid var(--line);}
+.feat-table td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:13px;color:var(--ink2);}
+.feat-table td.hi{color:var(--accent);font-weight:600;}
+.feat-table td.label{font-family:var(--sans);text-align:left;color:var(--ink3);font-size:12px;}
+.feat-table tr:last-child td{border-bottom:none;}
+
+footer{border-top:1px solid var(--line);padding:32px 0;text-align:center;color:var(--ink3);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">Module 2.2 · Artificial Intelligence</div>
+  <h1>Multiple Features,<br>Feature Scaling &amp;<br>Polynomial Regression</h1>
+  <p>Building on Module 2's single-variable linear regression — now with multiple input features, proper matrix notation, smarter preprocessing, and the power to fit curves.</p>
+  <nav class="toc">
+    <a href="#s1"><span class="toc-num">01</span> Multiple Features</a>
+    <a href="#s2"><span class="toc-num">02</span> Vectorised Model &amp; Matrix</a>
+    <a href="#s3"><span class="toc-num">03</span> Updated Gradient Descent</a>
+    <a href="#s4"><span class="toc-num">04</span> Feature Scaling</a>
+    <a href="#s5"><span class="toc-num">05</span> Choosing α</a>
+    <a href="#s6"><span class="toc-num">06</span> Polynomial Regression</a>
+  </nav>
+</header>
+
+
+<!-- ══ SECTION 1: MULTIPLE FEATURES ══ -->
+<section class="section" id="s1">
+  <div class="section-label">Section 01</div>
+  <h2>Multiple Features — The Real World Has More Than One Variable</h2>
+
+  <p>In Module 2, we predicted house prices using <strong>only one feature</strong> — the size of the house. But in reality, many things affect a house's price:</p>
+
+  <div class="diagram-card" style="padding:0;overflow:hidden;">
+    <table class="feat-table">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Example i</th>
+          <th>x₁ Size (sq ft)</th>
+          <th>x₂ Bedrooms</th>
+          <th>x₃ Floors</th>
+          <th>x₄ Age (yrs)</th>
+          <th style="color:var(--accent);">y Price ($1000s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="label">(1)</td><td>2104</td><td>5</td><td>1</td><td>45</td><td class="hi">460</td></tr>
+        <tr><td class="label">(2)</td><td>1416</td><td>3</td><td>2</td><td>40</td><td class="hi">232</td></tr>
+        <tr><td class="label">(3)</td><td>1534</td><td>3</td><td>2</td><td>30</td><td class="hi">315</td></tr>
+        <tr><td class="label">(4)</td><td>852</td><td>2</td><td>1</td><td>36</td><td class="hi">178</td></tr>
+        <tr><td class="label">⋮</td><td>⋮</td><td>⋮</td><td>⋮</td><td>⋮</td><td>⋮</td></tr>
+      </tbody>
+    </table>
+    <p style="padding:10px 18px 14px;font-size:13px;color:var(--ink3);font-style:italic;text-align:center;border-top:1px solid var(--line);">Table 1 — A dataset with n = 4 input features per training example.</p>
+  </div>
+
+  <h3>Updated Notation</h3>
+  <p>With multiple features, we need slightly more notation. Here is the complete set, fully consistent with Module 2:</p>
+
+  <table class="var-table">
+    <thead><tr><th>Symbol</th><th>Name</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>n</td><td>Number of features</td><td>How many input variables we have (e.g. n = 4 above)</td></tr>
+      <tr><td>x<sub>j</sub></td><td>Feature j</td><td>The j-th feature column (e.g. x₁ = size, x₂ = bedrooms)</td></tr>
+      <tr><td>x⁽ⁱ⁾</td><td>i-th training example</td><td>A <em>vector</em> of all n feature values for example i</td></tr>
+      <tr><td>x<sub>j</sub>⁽ⁱ⁾</td><td>j-th feature of i-th example</td><td>The specific value — e.g. x₂⁽³⁾ = 3 (bedrooms of house 3)</td></tr>
+      <tr><td>m</td><td>Training set size</td><td>Total number of training examples — same as Module 2</td></tr>
+      <tr><td>w₁, w₂ … wₙ</td><td>Weights</td><td>One weight per feature — each w<sub>j</sub> controls feature j's influence</td></tr>
+      <tr><td>b</td><td>Bias</td><td>The intercept term — same as Module 2</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout blue">
+    <div class="callout-title">📌 Note on x⁽ⁱ⁾</div>
+    <p>In Module 2, x⁽ⁱ⁾ was a single number. Now it is a <strong>vector of n numbers</strong> — one per feature. For example, x⁽¹⁾ = [2104, 5, 1, 45]. The superscript ⁽ⁱ⁾ still means "i-th example" — nothing has changed there.</p>
+  </div>
+
+  <h3>The New Model — One Term Per Feature</h3>
+  <p>In Module 2, the model was ŷ = wx + b (one weight). With n features, we simply add <strong>one weight per feature</strong>:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Multiple Linear Regression Model</span>
+    <div class="eq-main">ŷ = w₁x₁ + w₂x₂ + w₃x₃ + … + wₙxₙ + b</div>
+    <div class="eq-note">Each feature xⱼ gets its own weight wⱼ. The bias b is still a single number.</div>
+  </div>
+
+  <p>For our house-price example with n = 4:</p>
+  <div class="eq-block">
+    <span class="eq-label">Concretely for n = 4 features</span>
+    <div class="eq-main">ŷ = w₁·(size) + w₂·(bedrooms) + w₃·(floors) + w₄·(age) + b</div>
+    <div class="eq-note">For instance, w₁ = 0.1 means: each extra sq ft adds $100 to the predicted price.</div>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">💡 Intuition</div>
+    <p>Think of each wⱼ as the "importance weight" of feature j. A large positive w₁ means bigger houses cost more. A large negative w₄ means older houses cost less. The algorithm's job is to find the right combination of all the w's and b.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 2: VECTORISED MODEL ══ -->
+<section class="section" id="s2">
+  <div class="section-label">Section 02</div>
+  <h2>The Vectorised Model — Clean Notation with Matrix Multiplication</h2>
+
+  <p>Writing w₁x₁ + w₂x₂ + … + wₙxₙ + b is fine for n = 4, but imagine n = 1000 features. We need a compact notation. This is where <strong>vectors and matrix multiplication</strong> come in.</p>
+
+  <h3>Step 1 — Pack everything into vectors</h3>
+  <p>We define a weight vector <strong>w</strong> and a feature vector <strong>x</strong>, each of length n:</p>
+
+  <div class="matrix-wrap">
+    <div>
+      <div class="matrix">
+        <div class="matrix-row"><div class="matrix-cell hi">w₁</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">w₂</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">⋮</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">wₙ</div></div>
+      </div>
+      <div class="matrix-label">w ∈ ℝⁿ<br>(weight vector)</div>
+    </div>
+    <div style="align-self:center;font-size:1.2rem;color:var(--ink3);">and</div>
+    <div>
+      <div class="matrix">
+        <div class="matrix-row"><div class="matrix-cell blue">x₁</div></div>
+        <div class="matrix-row"><div class="matrix-cell blue">x₂</div></div>
+        <div class="matrix-row"><div class="matrix-cell blue">⋮</div></div>
+        <div class="matrix-row"><div class="matrix-cell blue">xₙ</div></div>
+      </div>
+      <div class="matrix-label">x ∈ ℝⁿ<br>(feature vector)</div>
+    </div>
+  </div>
+
+  <h3>Step 2 — The dot product gives us the model</h3>
+  <p>The sum w₁x₁ + w₂x₂ + … + wₙxₙ is exactly the <strong>dot product</strong> of <strong>w</strong> and <strong>x</strong>:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Compact vectorised model</span>
+    <div class="eq-main">ŷ = <strong>w</strong> · <strong>x</strong> + b = w₁x₁ + w₂x₂ + … + wₙxₙ + b</div>
+    <div class="eq-note">The dot product · multiplies matching elements and sums them — exactly what we want.</div>
+  </div>
+
+  <h3>Step 3 — The Full Feature Matrix X</h3>
+  <p>iAs we would work with entire training set — all m examples at once. We would stack all the feature vectors into a big matrix <strong>X</strong>:</p>
+
+  <div class="callout">
+    <div class="callout-title">🔑 Key idea</div>
+    <p>Each <strong>row</strong> of X is one training example x⁽ⁱ⁾. Each <strong>column</strong> of X is one feature xⱼ across all examples. So X has shape <strong>m rows × n columns</strong>.</p>
+  </div>
+
+  <div class="matrix-wrap" style="overflow-x:auto;">
+    <div>
+      <div class="matrix" style="padding:10px 24px;">
+        <div class="matrix-row">
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;min-width:24px;"> </div>
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;">x₁</div>
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;">x₂</div>
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;">x₃</div>
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;">x₄</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;">(1)</div>
+          <div class="matrix-cell">2104</div><div class="matrix-cell">5</div><div class="matrix-cell">1</div><div class="matrix-cell">45</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;">(2)</div>
+          <div class="matrix-cell">1416</div><div class="matrix-cell">3</div><div class="matrix-cell">2</div><div class="matrix-cell">40</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;">(3)</div>
+          <div class="matrix-cell">1534</div><div class="matrix-cell">3</div><div class="matrix-cell">2</div><div class="matrix-cell">30</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell" style="color:var(--ink3);font-size:11px;">(4)</div>
+          <div class="matrix-cell">852</div><div class="matrix-cell">2</div><div class="matrix-cell">1</div><div class="matrix-cell">36</div>
+        </div>
+      </div>
+      <div class="matrix-label">X of shape (m × n) = (4 × 4)</div>
+    </div>
+  </div>
+
+  <p>In that case we would compute the predictions for all examples at once using matrix multiplication. But for the vectors <strong>w</strong> and <strong>x</strong> matrix multiplication would not work. </p>
+  <p>Because, both <strong>w</strong> and <strong>x</strong> are column vectors of length n (n rows, 1 column). If we try to multiply them as-is, matrix multiplication rules say we need the <em>inner dimensions to match</em>. In that case if we take the transpose of <strong>w</strong>, we get a row vector, and the multiplication would work.</p>
+
+  <!-- ── Transpose visual — paste after the wᵀ equation ── -->
+<div class="diagram-card">
+  <svg width="100%" viewBox="0 0 680 430" role="img">
+    <title>Visual explanation of vector transposition: column vector w becomes row vector wᵀ</title>
+    <desc>w as a column vector of shape n×1, then after transposing it becomes a row vector of shape 1×n, which can multiply with x (n×1) to give scalar ŷ.</desc>
+    <defs>
+      <marker id="arr-t" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- ── Labels ── -->
+    <text x="112" y="36"  text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">before transpose</text>
+    <text x="430" y="36"  text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">after transpose</text>
+
+    <!-- ── Column vector w ── -->
+    <path d="M76 50 L68 50 L68 222 L76 222" fill="none" stroke="#4a4740" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M148 50 L156 50 L156 222 L148 222" fill="none" stroke="#4a4740" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- cells -->
+    <rect x="80" y="56"  width="64" height="34" rx="4" fill="#eff6ff" stroke="#2563eb" stroke-width="0.5"/>
+    <text x="112" y="73"  text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="14" font-weight="500" fill="#1d4ed8">w₁</text>
+    <rect x="80" y="98"  width="64" height="34" rx="4" fill="#eff6ff" stroke="#2563eb" stroke-width="0.5"/>
+    <text x="112" y="115" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="14" font-weight="500" fill="#1d4ed8">w₂</text>
+    <rect x="80" y="140" width="64" height="34" rx="4" fill="#eff6ff" stroke="#2563eb" stroke-width="0.5"/>
+    <text x="112" y="157" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="14" font-weight="500" fill="#1d4ed8">w₃</text>
+    <text x="112" y="192" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans,sans-serif" font-size="14" fill="#8a8680">⋮</text>
+    <rect x="80" y="200" width="64" height="34" rx="4" fill="#eff6ff" stroke="#2563eb" stroke-width="0.5"/>
+    <text x="112" y="217" text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="14" font-weight="500" fill="#1d4ed8">wₙ</text>
+    <!-- shape -->
+    <text x="112" y="248" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">shape: (n × 1)</text>
+    <text x="112" y="264" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">column vector</text>
+    <!-- dim annotations -->
+    <line x1="58" y1="56" x2="58" y2="234" stroke="#c8c5bf" stroke-width="0.75" stroke-dasharray="3 2"/>
+    <text x="50" y="145" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680" transform="rotate(-90,50,145)">n rows</text>
+    <line x1="80" y1="46" x2="144" y2="46" stroke="#c8c5bf" stroke-width="0.75" stroke-dasharray="3 2"/>
+    <text x="112" y="43" text-anchor="middle" dominant-baseline="auto" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">1 col</text>
+
+    <!-- ── Transpose arrow ── -->
+    <line x1="174" y1="136" x2="238" y2="136" stroke="#8a8680" stroke-width="1.5" marker-end="url(#arr-t)"/>
+    <text x="206" y="126" text-anchor="middle" dominant-baseline="central" font-family="Lora,Georgia,serif" font-size="15" font-weight="700" fill="#1a1814">T</text>
+    <text x="206" y="152" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">transpose</text>
+
+    <!-- ── Row vector wᵀ ── -->
+    <path d="M258 58 L258 50 L602 50 L602 58" fill="none" stroke="#4a4740" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M258 116 L258 124 L602 124 L602 116" fill="none" stroke="#4a4740" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- cells -->
+    <rect x="262" y="58" width="64" height="58" rx="4" fill="#fef6f4" stroke="#c84b2f" stroke-width="0.5"/>
+    <text x="294" y="87"  text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="14" font-weight="500" fill="#c84b2f">w₁</text>
+    <rect x="334" y="58" width="64" height="58" rx="4" fill="#fef6f4" stroke="#c84b2f" stroke-width="0.5"/>
+    <text x="366" y="87"  text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="14" font-weight="500" fill="#c84b2f">w₂</text>
+    <rect x="406" y="58" width="64" height="58" rx="4" fill="#fef6f4" stroke="#c84b2f" stroke-width="0.5"/>
+    <text x="438" y="87"  text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="14" font-weight="500" fill="#c84b2f">w₃</text>
+    <text x="486" y="87"  text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans,sans-serif" font-size="14" fill="#8a8680">…</text>
+    <rect x="506" y="58" width="90" height="58" rx="4" fill="#fef6f4" stroke="#c84b2f" stroke-width="0.5"/>
+    <text x="551" y="87"  text-anchor="middle" dominant-baseline="central" font-family="DM Mono,monospace" font-size="14" font-weight="500" fill="#c84b2f">wₙ</text>
+    <!-- shape -->
+    <text x="430" y="144" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">shape: (1 × n)</text>
+    <text x="430" y="160" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">row vector</text>
+    <!-- dim annotations -->
+    <line x1="262" y1="43" x2="596" y2="43" stroke="#c8c5bf" stroke-width="0.75" stroke-dasharray="3 2"/>
+    <text x="430" y="40" text-anchor="middle" dominant-baseline="auto" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">n columns</text>
+    <line x1="250" y1="58" x2="250" y2="124" stroke="#c8c5bf" stroke-width="0.75" stroke-dasharray="3 2"/>
+    <text x="243" y="91" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680" transform="rotate(-90,243,91)">1 row</text>
+
+    
+  </svg>
+  
+</div>
+<!-- ── end transpose visual ── -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="compare-grid">
+    <div class="compare-card bad">
+      <h4>❌ w · x  — doesn't work</h4>
+      <p><strong>w</strong> is (n × 1) and <strong>x</strong> is (n × 1). Matrix multiplication (n×1)·(n×1) is <strong>undefined</strong> — inner dimensions n and n don't match in the right way for a dot product to give a scalar.</p>
+    </div>
+    <div class="compare-card good">
+      <h4>✅ wᵀ · x — works perfectly</h4>
+      <p><strong>wᵀ</strong> is (1 × n) and <strong>x</strong> is (n × 1). Multiplication (1×n)·(n×1) = <strong>(1×1) = a scalar</strong> — exactly one predicted price. The inner dimensions match!</p>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 200" role="img">
+      <title>Diagram showing transpose multiplication: (1×n) times (n×1) equals (1×1) scalar</title>
+      <!-- wT box -->
+      <rect x="40" y="60" width="200" height="80" rx="10" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="140" y="90" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#c84b2f" font-weight="600">wᵀ</text>
+      <text x="140" y="112" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">shape: (1 × n)</text>
+      <text x="140" y="128" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#c84b2f">[ w₁  w₂  …  wₙ ]</text>
+      <!-- times sign -->
+      <text x="262" y="106" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="22" fill="#8a8680">×</text>
+      <!-- x box -->
+      <rect x="284" y="50" width="100" height="100" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="334" y="82" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#2563eb" font-weight="600">x</text>
+      <text x="334" y="100" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">shape:</text>
+      <text x="334" y="116" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">(n × 1)</text>
+      <text x="334" y="134" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#2563eb">[x₁ x₂ … xₙ]ᵀ</text>
+      <!-- equals sign -->
+      <text x="408" y="106" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="22" fill="#8a8680">=</text>
+      <!-- scalar box -->
+      <rect x="430" y="72" width="90" height="56" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="475" y="97" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#059669" font-weight="600">ŷ</text>
+      <text x="475" y="116" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">shape: (1×1)</text>
+      <!-- dimension match annotation -->
+      <text x="272" y="170" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">1 × <tspan font-weight="700" fill="#c84b2f">n</tspan></text>
+      <text x="320" y="170" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">×</text>
+      <text x="368" y="170" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680"><tspan font-weight="700" fill="#c84b2f">n</tspan> × 1</text>
+      <text x="408" y="170" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">=</text>
+      <text x="450" y="170" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">1 × 1 ✓</text>
+      <!-- Inner dims match brace -->
+      <path d="M 290 158 Q 320 148 350 158" fill="none" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="320" y="145" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">inner dims match!</text>
+      <!-- Right side annotation -->
+      <text x="560" y="80" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#4a4740">One prediction</text>
+      <text x="560" y="98" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#4a4740">per example</text>
+      <text x="560" y="116" font-family="DM Mono,monospace" font-size="12" fill="#059669">ŷ ∈ ℝ (scalar)</text>
+    </svg>
+    <figcaption>Figure 1 — Transposing w turns a column vector into a row vector. Now the matrix multiplication is defined and gives a single scalar ŷ.</figcaption>
+  </div>
+
+  <div class="eq-block">
+    <span class="eq-label">Final compact form — Andrew Ng notation</span>
+    <div class="eq-main">f<sub><strong>w</strong>,b</sub>(<strong>x</strong>) = <strong>w</strong>ᵀ<strong>x</strong> + b</div>
+    <div class="eq-note">wᵀ is the transpose of w. This is the standard notation Andrew Ng uses in his course.</div>
+  </div>
+
+  <h3>Computing All Predictions at Once — Why x₀ = 1?</h3>
+  <p>Here is an elegant trick Andrew Ng teaches. Right now the model is <strong>w</strong>ᵀ<strong>x</strong> + b. The "+ b" is separate. What if we could absorb b into the dot product itself?</p>
+  <p>We do this by adding a <strong>dummy feature x₀ = 1</strong> to every training example, and adding b as an extra element w₀ = b in the weight vector:</p>
+
+  <div class="matrix-wrap" style="flex-wrap:wrap;gap:28px;">
+    <div>
+      <div class="matrix" style="padding:10px 22px;">
+        <div class="matrix-row"><div class="matrix-cell green">x₀ = 1</div></div>
+        <div class="matrix-row"><div class="matrix-cell blue">x₁</div></div>
+        <div class="matrix-row"><div class="matrix-cell blue">x₂</div></div>
+        <div class="matrix-row"><div class="matrix-cell blue">⋮</div></div>
+        <div class="matrix-row"><div class="matrix-cell blue">xₙ</div></div>
+      </div>
+      <div class="matrix-label">x ∈ ℝⁿ⁺¹<br>(augmented feature vector)</div>
+    </div>
+    <div style="align-self:center;font-family:var(--mono);font-size:1.2rem;color:var(--ink3);">and</div>
+    <div>
+      <div class="matrix" style="padding:10px 22px;">
+        <div class="matrix-row"><div class="matrix-cell green">w₀ = b</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">w₁</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">w₂</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">⋮</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">wₙ</div></div>
+      </div>
+      <div class="matrix-label">w ∈ ℝⁿ⁺¹<br>(augmented weight vector)</div>
+    </div>
+    <div style="align-self:center;font-size:1.5rem;color:var(--ink3);">→</div>
+    <div style="align-self:center;">
+      <div class="eq-block" style="margin:0;padding:16px 24px;">
+        <div class="eq-main" style="font-size:1.1rem;">ŷ = <strong>w</strong>ᵀ<strong>x</strong></div>
+        <div class="eq-note">(no separate + b needed!)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout purple">
+    <div class="callout-title">🔑 Why does x₀ = 1 absorb the bias?</div>
+    <p>When we compute the dot product: w₀·x₀ + w₁·x₁ + … + wₙ·xₙ = <strong>b·1</strong> + w₁x₁ + … + wₙxₙ. Since x₀ = 1 always, multiplying w₀ by it just gives w₀ = b. The bias term appears automatically! This is a standard trick that makes the full training process cleaner — the design matrix X then has a column of all 1s as its first column.</p>
+  </div>
+
+  <h3>The Full Feature Matrix X (with x₀ = 1 column)</h3>
+  <p>After adding the x₀ = 1 column, the matrix X now has shape <strong>m × (n+1)</strong>:</p>
+
+  <div class="matrix-wrap" style="overflow-x:auto;">
+    <div>
+      <div class="matrix" style="padding:10px 18px;">
+        <div class="matrix-row">
+          <div class="matrix-cell green" style="font-size:11px;">x₀=1</div>
+          <div class="matrix-cell blue" style="font-size:11px;">x₁</div>
+          <div class="matrix-cell blue" style="font-size:11px;">x₂</div>
+          <div class="matrix-cell blue" style="font-size:11px;">x₃</div>
+          <div class="matrix-cell blue" style="font-size:11px;">x₄</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell green">1</div><div class="matrix-cell">2104</div><div class="matrix-cell">5</div><div class="matrix-cell">1</div><div class="matrix-cell">45</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell green">1</div><div class="matrix-cell">1416</div><div class="matrix-cell">3</div><div class="matrix-cell">2</div><div class="matrix-cell">40</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell green">1</div><div class="matrix-cell">1534</div><div class="matrix-cell">3</div><div class="matrix-cell">2</div><div class="matrix-cell">30</div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell green">1</div><div class="matrix-cell">852</div><div class="matrix-cell">2</div><div class="matrix-cell">1</div><div class="matrix-cell">36</div>
+        </div>
+      </div>
+      <div class="matrix-label">X of shape (m × (n+1)) = (4 × 5)<br>First column is all 1s — this encodes the bias</div>
+    </div>
+    <div style="align-self:center;font-size:1.4rem;color:var(--ink3);">·</div>
+    <div>
+      <div class="matrix" style="padding:10px 22px;">
+        <div class="matrix-row"><div class="matrix-cell green">b</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">w₁</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">w₂</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">w₃</div></div>
+        <div class="matrix-row"><div class="matrix-cell hi">w₄</div></div>
+      </div>
+      <div class="matrix-label">w ∈ ℝ⁵</div>
+    </div>
+    <div style="align-self:center;font-size:1.4rem;color:var(--ink3);">=</div>
+    <div>
+      <div class="matrix" style="padding:10px 22px;">
+        <div class="matrix-row"><div class="matrix-cell green">ŷ⁽¹⁾</div></div>
+        <div class="matrix-row"><div class="matrix-cell green">ŷ⁽²⁾</div></div>
+        <div class="matrix-row"><div class="matrix-cell green">ŷ⁽³⁾</div></div>
+        <div class="matrix-row"><div class="matrix-cell green">ŷ⁽⁴⁾</div></div>
+      </div>
+      <div class="matrix-label">ŷ ∈ ℝᵐ<br>all predictions at once</div>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">✅ The power of matrix notation</div>
+    <p>With one matrix multiplication <strong>Xw</strong>, we compute <em>all m predictions simultaneously</em>. This is not just cleaner notation — it's how GPUs compute things extremely fast in practice. NumPy, PyTorch, and TensorFlow all use exactly this under the hood.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 3: UPDATED GRADIENT DESCENT ══ -->
+<section class="section" id="s3">
+  <div class="section-label">Section 03</div>
+  <h2>Updated Gradient Descent for n Features</h2>
+
+  <p>In Module 2, gradient descent updated just two parameters: w and b. Now with n features, we have <strong>n + 1 parameters</strong> to update: w₁, w₂, …, wₙ and b. The good news is the structure is identical — we just repeat the update for each wⱼ.</p>
+
+  <h3>The Cost Function — Same Formula, More Parameters</h3>
+  <p>The cost function J does not change its shape — it still measures average squared error. But now ŷ⁽ⁱ⁾ depends on all features:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Cost function for multiple regression</span>
+    <div class="eq-main">J(<strong>w</strong>, b) = <sup>1</sup>/<sub>2m</sub> &sum;<sub>i=1</sub><sup>m</sup> (ŷ⁽ⁱ⁾ &minus; y⁽ⁱ⁾)²</div>
+    <div class="eq-note">Where ŷ⁽ⁱ⁾ = w₁x₁⁽ⁱ⁾ + w₂x₂⁽ⁱ⁾ + … + wₙxₙ⁽ⁱ⁾ + b = wᵀx⁽ⁱ⁾ + b</div>
+  </div>
+
+  <h3>The Updated Update Rules</h3>
+  <p>In Module 2 we had just one update for w. Now we have <strong>one update rule for each wⱼ</strong>, plus the same update for b:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Gradient Descent — Multiple Features (repeat until convergence)</span>
+    <div class="eq-main" style="text-align:left;display:inline-block;line-height:2.4;">
+      w₁ := w₁ &minus; &alpha; &middot; <sup>1</sup>/<sub>m</sub> &sum;<sub>i=1</sub><sup>m</sup> (ŷ⁽ⁱ⁾ &minus; y⁽ⁱ⁾) x₁⁽ⁱ⁾<br>
+      w₂ := w₂ &minus; &alpha; &middot; <sup>1</sup>/<sub>m</sub> &sum;<sub>i=1</sub><sup>m</sup> (ŷ⁽ⁱ⁾ &minus; y⁽ⁱ⁾) x₂⁽ⁱ⁾<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⋮<br>
+      wₙ := wₙ &minus; &alpha; &middot; <sup>1</sup>/<sub>m</sub> &sum;<sub>i=1</sub><sup>m</sup> (ŷ⁽ⁱ⁾ &minus; y⁽ⁱ⁾) xₙ⁽ⁱ⁾<br>
+      b &nbsp;&nbsp;:= b &nbsp;&nbsp;&minus; &alpha; &middot; <sup>1</sup>/<sub>m</sub> &sum;<sub>i=1</sub><sup>m</sup> (ŷ⁽ⁱ⁾ &minus; y⁽ⁱ⁾)
+    </div>
+    <div class="eq-note">All updates are computed simultaneously using the <em>old</em> values of all parameters — same rule as Module 2.</div>
+  </div>
+
+  <h3>The Pattern Is Always the Same</h3>
+  <p>Notice the pattern: the update for wⱼ is exactly the Module 2 update for w, but with xⱼ⁽ⁱ⁾ (feature j of example i) in place of the single x⁽ⁱ⁾. And the update for b is unchanged. We can write this compactly as:</p>
+
+  <div class="sub-eqs">
+    <div class="sub-eq">
+      <span class="var-name">Update for wⱼ (j = 1 to n)</span>
+      wⱼ := wⱼ &minus; &alpha; · <sup>&part;J</sup>/<sub>&part;wⱼ</sub>
+      <br><br>
+      <span style="font-size:12px;color:var(--ink3);font-family:var(--sans);">where &part;J/&part;wⱼ = (1/m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾) xⱼ⁽ⁱ⁾</span>
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">Update for b (unchanged from Module 2)</span>
+      b := b &minus; &alpha; · <sup>&part;J</sup>/<sub>&part;b</sub>
+      <br><br>
+      <span style="font-size:12px;color:var(--ink3);font-family:var(--sans);">where &part;J/&part;b = (1/m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)</span>
+    </div>
+  </div>
+
+  <div class="callout blue">
+    <div class="callout-title">🔑 What changed from Module 2?</div>
+    <p>Only one thing: instead of one w, we now update <strong>n weights</strong>, each using its own feature xⱼ in the gradient. The b update is <em>identical</em> to Module 2. The simultaneous update rule still applies — you must compute all gradients using old values first, then assign all new values.</p>
+  </div>
+
+  <h3>Side-by-side: Module 2.1 vs Module 2.2</h3>
+
+  <div class="diagram-card" style="padding:0;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <thead>
+        <tr style="background:var(--code-bg);">
+          <th style="padding:12px 18px;text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);"></th>
+          <th style="padding:12px 18px;text-align:center;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);">Module 2.1 (n=1)</th>
+          <th style="padding:12px 18px;text-align:center;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);">Module 2.2 (n features)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;border-bottom:1px solid var(--line);">Model</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);">ŷ = wx + b</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);color:var(--accent2);">ŷ = wᵀx + b</td>
+        </tr>
+        <tr style="background:var(--bg);">
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;border-bottom:1px solid var(--line);">Parameters</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);">w, b (2 values)</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);color:var(--accent2);">w₁…wₙ, b (n+1 values)</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;border-bottom:1px solid var(--line);">Cost J</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);">(1/2m)Σ(ŷ−y)²</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);color:var(--accent2);">(1/2m)Σ(ŷ−y)² ← same!</td>
+        </tr>
+        <tr style="background:var(--bg);">
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;border-bottom:1px solid var(--line);">w update</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);">w := w − α·(1/m)Σ(ŷ−y)x</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);color:var(--accent2);">wⱼ := wⱼ − α·(1/m)Σ(ŷ−y)xⱼ⁽ⁱ⁾</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;">b update</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;">b := b − α·(1/m)Σ(ŷ−y)</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;color:var(--accent3);">b := b − α·(1/m)Σ(ŷ−y) ← identical!</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">✅ Great news</div>
+    <p>The jump from n = 1 to n features is <strong>just adding more w updates</strong>. Everything else — the cost function formula, the b update, the simultaneous update rule, the learning rate α, convergence detection — is exactly the same as Module 2.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 4: FEATURE SCALING ══ -->
+<section class="section" id="s4">
+  <div class="section-label">Section 04</div>
+  <h2>Feature Scaling — Making Gradient Descent Work Fast</h2>
+
+  <p>When features have very different ranges — say x₁ ∈ [1, 3] (floors) and x₁ ∈ [300, 3000] (sq ft) — gradient descent has a serious problem. Let's understand why, and how to fix it.</p>
+
+  <h3>The Problem — Elongated Cost Contours</h3>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 280" role="img">
+      <title>Left: elongated contours without feature scaling causing slow zigzag gradient descent. Right: circular contours with scaling causing fast direct descent.</title>
+      <!-- Left panel: WITHOUT scaling -->
+      <text x="190" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#1a1814">Without Feature Scaling</text>
+      <text x="190" y="40" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Elongated, narrow contours</text>
+      <!-- Elongated ellipses -->
+      <ellipse cx="190" cy="155" rx="155" ry="25" fill="none" stroke="#c84b2f" stroke-width="1" opacity="0.4"/>
+      <ellipse cx="190" cy="155" rx="120" ry="19" fill="none" stroke="#c84b2f" stroke-width="1" opacity="0.5"/>
+      <ellipse cx="190" cy="155" rx="85" ry="13" fill="none" stroke="#c84b2f" stroke-width="1.2" opacity="0.6"/>
+      <ellipse cx="190" cy="155" rx="50" ry="8" fill="none" stroke="#c84b2f" stroke-width="1.5" opacity="0.8"/>
+      <ellipse cx="190" cy="155" rx="20" ry="4" fill="none" stroke="#c84b2f" stroke-width="2"/>
+      <circle cx="190" cy="155" r="4" fill="#c84b2f"/>
+      <!-- Zigzag path -->
+      <polyline points="45,145 80,168 115,142 150,165 175,152 190,155"
+        fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="5 3"/>
+      <circle cx="45" cy="145" r="5" fill="#2563eb"/>
+      <!-- Axis labels -->
+      <text x="40" y="260" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">w₁ (tiny range)</text>
+      <text x="330" y="260" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">w₂ (huge range)</text>
+      <line x1="40" y1="250" x2="340" y2="250" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a4)"/>
+      <line x1="40" y1="250" x2="40" y2="60" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a4)"/>
+      <defs><marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#c8c5bf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <text x="200" y="210" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">Zigzag! Slow convergence</text>
+      <!-- Divider -->
+      <line x1="390" y1="20" x2="390" y2="270" stroke="#e8e5df" stroke-width="1"/>
+      <!-- Right panel: WITH scaling -->
+      <text x="575" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#1a1814">With Feature Scaling</text>
+      <text x="575" y="40" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Circular, symmetric contours</text>
+      <!-- Circular contours -->
+      <ellipse cx="575" cy="155" rx="130" ry="110" fill="none" stroke="#059669" stroke-width="1" opacity="0.4"/>
+      <ellipse cx="575" cy="155" rx="96" ry="82" fill="none" stroke="#059669" stroke-width="1" opacity="0.5"/>
+      <ellipse cx="575" cy="155" rx="65" ry="55" fill="none" stroke="#059669" stroke-width="1.2" opacity="0.6"/>
+      <ellipse cx="575" cy="155" rx="36" ry="30" fill="none" stroke="#059669" stroke-width="1.5" opacity="0.8"/>
+      <ellipse cx="575" cy="155" rx="14" ry="12" fill="none" stroke="#059669" stroke-width="2"/>
+      <circle cx="575" cy="155" r="4" fill="#059669"/>
+      <!-- Direct path -->
+      <polyline points="445,90 510,120 555,143 575,155" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="5 3"/>
+      <circle cx="445" cy="90" r="5" fill="#2563eb"/>
+      <!-- Axis labels -->
+      <text x="425" y="260" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">w₁ (scaled)</text>
+      <text x="710" y="260" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">w₂ (scaled)</text>
+      <line x1="420" y1="250" x2="720" y2="250" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a4)"/>
+      <line x1="420" y1="250" x2="420" y2="60" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a4)"/>
+      <text x="575" y="225" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">Direct path! Fast convergence</text>
+    </svg>
+    <figcaption>Figure 2 — When features are on very different scales, the cost contours are elongated ellipses and gradient descent zigzags slowly. After scaling, contours are circular and gradient descent finds the minimum much faster.</figcaption>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">💡 Intuition — Why elongated contours are bad</div>
+    <p>When x₂ has a much larger range than x₁, a small change in w₂ causes a big change in J, but a small change in w₁ causes almost no change. Gradient descent must use a tiny α to avoid overshooting on the w₂ axis — which makes it crawl along the w₁ axis. The solution: put all features on the same scale first.</p>
+  </div>
+
+  <h3>Method 1 — Simple Rescaling (Divide by Max)</h3>
+  <p>The simplest approach: divide each feature by its maximum value so it falls in the range [0, 1]:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Simple rescaling</span>
+    <div class="eq-main">x̃ⱼ = xⱼ / max(xⱼ)</div>
+    <div class="eq-note">After this, all features lie in [0, 1]. Quick and easy, but sensitive to outliers.</div>
+  </div>
+
+  <h3>Method 2 — Mean Normalisation</h3>
+  <p>Andrew Ng's preferred method: shift each feature to be centred around zero, then divide by the range:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Mean Normalisation</span>
+    <div class="eq-main">x̃ⱼ = (xⱼ &minus; μⱼ) / (max(xⱼ) &minus; min(xⱼ))</div>
+    <div class="eq-note">μⱼ is the mean of feature j. After this, features are roughly centred at 0 and lie in [−1, 1].</div>
+  </div>
+
+  <h3>Method 3 — Z-score Standardisation</h3>
+  <p>The most statistically principled method: shift to zero mean and divide by standard deviation σⱼ:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Z-score Standardisation</span>
+    <div class="eq-main">x̃ⱼ = (xⱼ &minus; μⱼ) / σⱼ</div>
+    <div class="eq-note">σⱼ is the standard deviation of feature j. Result: every feature has mean 0 and standard deviation 1.</div>
+  </div>
+
+  <h3>A Concrete Example</h3>
+  <p>Let's apply mean normalisation to our house-price features. Given: size ∈ [300, 2000], bedrooms ∈ [0, 5], mean size = 1000, mean bedrooms = 2.5:</p>
+
+  <div class="diagram-card" style="padding:0;overflow:hidden;">
+    <table class="feat-table" style="font-size:13px;">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Feature</th>
+          <th>Range</th>
+          <th>μ (mean)</th>
+          <th>Raw value (example)</th>
+          <th>After mean norm.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="label">x₁ (size, sq ft)</td>
+          <td>300 – 2000</td><td>1000</td><td>2104</td>
+          <td style="color:var(--accent3);font-weight:600;">(2104 − 1000) / 1700 ≈ 0.65</td>
+        </tr>
+        <tr>
+          <td class="label">x₂ (bedrooms)</td>
+          <td>0 – 5</td><td>2.5</td><td>5</td>
+          <td style="color:var(--accent3);font-weight:600;">(5 − 2.5) / 5 = 0.50</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="padding:10px 18px 14px;font-size:13px;color:var(--ink3);font-style:italic;text-align:center;border-top:1px solid var(--line);">Both features are now in a similar range — gradient descent will behave much better.</p>
+  </div>
+
+  <div class="callout yellow">
+    <div class="callout-title">⚠️ Critical Rule — Scale using training data only</div>
+    <p>Compute μⱼ, σⱼ, min, max using <strong>only the training set</strong>. Then apply the same scaling to the test/validation set and new predictions. Never compute scaling statistics from test data — that would be "data leakage".</p>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">When to scale</div>
+    <p>Aim for features roughly in the range [−1, 1] or [−3, 3]. If any feature has a much larger or smaller range than the others, scale it. If features are already on similar scales (e.g. all probabilities in [0,1]), scaling has little effect and is not strictly necessary.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 5: CHOOSING ALPHA ══ -->
+<section class="section" id="s5">
+  <div class="section-label">Section 05</div>
+  <h2>Choosing the Learning Rate α</h2>
+
+  <p>One of the most practical skills in machine learning is knowing how to set α. Set it wrong and gradient descent will either crawl or diverge. Here is Andrew Ng's systematic approach.</p>
+
+  <h3>The Learning Curve is Your Diagnostic Tool</h3>
+  <p>Always plot <strong>J vs number of iterations</strong> after running gradient descent. The shape of this curve tells you everything:</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 290" role="img">
+      <title>Four learning curve scenarios: correct alpha, too large alpha causing divergence, too large alpha causing oscillation, and too small alpha</title>
+      <defs>
+        <marker id="a5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#c8c5bf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <!-- Panel A: correct -->
+      <text x="95" y="18" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#059669">✓ α just right</text>
+      <line x1="20" y1="130" x2="175" y2="130" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a5)"/>
+      <line x1="20" y1="130" x2="20" y2="25" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a5)"/>
+      <path d="M 25 115 C 50 95 70 65 100 50 S 140 38 170 36" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="95" y="150" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Iterations →</text>
+      <text x="95" y="165" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">J decreases every step</text>
+
+      <!-- Panel B: diverging -->
+      <text x="285" y="18" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#c84b2f">✗ α too large (diverge)</text>
+      <line x1="210" y1="130" x2="365" y2="130" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a5)"/>
+      <line x1="210" y1="130" x2="210" y2="25" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a5)"/>
+      <path d="M 215 115 C 230 130 250 140 260 135 S 280 120 290 125 S 310 135 330 145 S 350 155 360 165" fill="none" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="285" y="150" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Iterations →</text>
+      <text x="285" y="165" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">J increases — reduce α!</text>
+
+      <!-- Panel C: oscillating -->
+      <text x="475" y="18" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#f59e0b">✗ α too large (oscillate)</text>
+      <line x1="400" y1="130" x2="555" y2="130" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a5)"/>
+      <line x1="400" y1="130" x2="400" y2="25" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a5)"/>
+      <path d="M 405 115 L 420 45 L 435 110 L 450 50 L 465 105 L 480 55 L 495 100 L 510 60 L 525 95 L 540 65" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="475" y="150" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Iterations →</text>
+      <text x="475" y="165" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#f59e0b">J bounces — reduce α!</text>
+
+      <!-- Panel D: too small -->
+      <text x="665" y="18" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#8a8680">⚠ α too small</text>
+      <line x1="590" y1="130" x2="745" y2="130" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a5)"/>
+      <line x1="590" y1="130" x2="590" y2="25" stroke="#c8c5bf" stroke-width="1" marker-end="url(#a5)"/>
+      <path d="M 595 122 C 620 120 650 117 680 114 S 720 111 740 109" fill="none" stroke="#8a8680" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="665" y="150" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Iterations →</text>
+      <text x="665" y="165" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Barely moving — slow!</text>
+
+      <!-- J axis label for all panels -->
+      <text x="10" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680" transform="rotate(-90,10,78)">J</text>
+      <text x="200" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680" transform="rotate(-90,200,78)">J</text>
+      <text x="390" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680" transform="rotate(-90,390,78)">J</text>
+      <text x="580" y="78" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680" transform="rotate(-90,580,78)">J</text>
+
+      <!-- Summary table area -->
+      <rect x="20" y="185" width="720" height="88" rx="10" fill="var(--code-bg, #f0ede6)" stroke="#e8e5df" stroke-width="1"/>
+      <text x="380" y="204" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#1a1814">Andrew Ng's α Search Strategy</text>
+      <text x="380" y="222" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#2563eb">Try:  …, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, …</text>
+      <text x="380" y="242" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">Each value is roughly 3× the previous. Plot the learning curve for each.</text>
+      <text x="380" y="262" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">Choose the largest α where J reliably decreases every iteration.</text>
+    </svg>
+    <figcaption>Figure 3 — The four learning curve shapes and what they tell you. Always plot J vs iterations to diagnose your learning rate.</figcaption>
+  </div>
+
+  <h3>The Step-by-Step Procedure</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">1</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Start with a very small α (e.g. 0.001)</h4>
+        <p>Run gradient descent for ~100 iterations and plot J. It should be going down. If even 0.001 makes J go up, check your code — there is likely a bug (a common one is forgetting to simultaneously update w and b).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">2</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Increase α by ~3× each time</h4>
+        <p>Try 0.001 → 0.003 → 0.01 → 0.03 → 0.1 → 0.3 → 1. For each, plot J vs iterations. You're looking for the largest α where J still monotonically decreases.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">3</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Find the boundary — then back off slightly</h4>
+        <p>Say 0.1 works but 0.3 diverges. Pick something in between, like 0.1 or 0.2. There's no single right answer — you want fast convergence without instability.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">4</div></div>
+      <div class="step-body">
+        <h4>After feature scaling, revisit α</h4>
+        <p>Feature scaling (Section 04) often lets you use a much larger α. Always re-tune α after scaling your features — the optimal value can change significantly.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">🔑 The golden rule</div>
+    <p>With a <strong>small enough α</strong>, gradient descent will always decrease J on every iteration for linear regression (because J is convex). If J ever increases, it is always either a too-large α or a bug in your code. This is a useful debugging principle.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 6: POLYNOMIAL REGRESSION ══ -->
+<section class="section" id="s6">
+  <div class="section-label">Section 06</div>
+  <h2>Polynomial Regression — When a Line Isn't Enough</h2>
+
+  <h3>Why Linear Might Not Always Be the Best Fit</h3>
+  <p>Linear regression fits a straight line (or hyperplane) through the data. But what if the true relationship is curved? Consider house prices vs. size:</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 280" role="img">
+      <title>Two panels: left shows a straight line missing a curved dataset, right shows a curve fitting the same data well</title>
+      <defs>
+        <marker id="a6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#c8c5bf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <!-- LEFT: Linear misfit -->
+      <text x="185" y="18" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#c84b2f">Linear regression — poor fit</text>
+      <line x1="30" y1="240" x2="340" y2="240" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#a6)"/>
+      <line x1="30" y1="240" x2="30" y2="30" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#a6)"/>
+      <!-- Data (curved pattern) -->
+      <circle cx="60" cy="220" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="90" cy="195" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="120" cy="160" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="150" cy="125" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="180" cy="100" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="210" cy="85" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="240" cy="78" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="270" cy="80" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="300" cy="90" r="5" fill="#2563eb" opacity=".85"/>
+      <!-- Bad straight line -->
+      <line x1="40" y1="200" x2="330" y2="80" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="185" y="260" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f">ŷ = wx + b — misses the curve!</text>
+
+      <!-- Divider -->
+      <line x1="380" y1="20" x2="380" y2="265" stroke="#e8e5df" stroke-width="1"/>
+
+      <!-- RIGHT: Polynomial fit -->
+      <text x="570" y="18" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#059669">Polynomial regression — good fit</text>
+      <line x1="410" y1="240" x2="730" y2="240" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#a6)"/>
+      <line x1="410" y1="240" x2="410" y2="30" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#a6)"/>
+      <!-- Same data -->
+      <circle cx="440" cy="220" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="470" cy="195" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="500" cy="160" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="530" cy="125" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="560" cy="100" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="590" cy="85" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="620" cy="78" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="650" cy="80" r="5" fill="#2563eb" opacity=".85"/>
+      <circle cx="680" cy="90" r="5" fill="#2563eb" opacity=".85"/>
+      <!-- Good polynomial curve -->
+      <path d="M 425 228 C 450 195 490 148 530 112 S 570 80 600 73 S 650 76 685 94"
+        fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="570" y="260" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">ŷ = w₁x + w₂x² + b — fits the curve!</text>
+    </svg>
+    <figcaption>Figure 4 — A straight line cannot capture curved patterns in data. Polynomial regression adds squared (and higher) terms to model curvature.</figcaption>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">💡 Andrew Ng's Key Observation</div>
+    <p>Andrew Ng says: "The choice of features is up to you." You can take your original feature x (like house size) and <em>engineer new features</em> from it — like x², x³, or √x. Once you create these new features, you still run the same linear regression algorithm. The model is linear in the <strong>parameters</strong> w, even if it is nonlinear in the original feature x.</p>
+  </div>
+
+  <h3>How Polynomial Regression Works</h3>
+  <p>The trick is simple: <strong>create new features</strong> by raising x to higher powers. Then treat each power as a separate feature and apply multivariate linear regression.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-line"><div class="step-num">1</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Start with your original feature x</h4>
+        <p>Say x = house size (sq ft). We observe the data looks curved, so a straight line won't do.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">2</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Create engineered features</h4>
+        <p>Define x₁ = x, x₂ = x², x₃ = x³ (or as many powers as you think you need). These are just new columns in your feature matrix.</p>
+        <span class="mini-eq blue">x₁ = x &nbsp;(size) &nbsp;&nbsp; x₂ = x² &nbsp;(size²) &nbsp;&nbsp; x₃ = x³ &nbsp;(size³)</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">3</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Write the polynomial model as a linear regression</h4>
+        <p>Now the model looks exactly like multivariate linear regression with n = 3 features:</p>
+        <span class="mini-eq">ŷ = w₁x₁ + w₂x₂ + w₃x₃ + b = w₁x + w₂x² + w₃x³ + b</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <h4>Run the same gradient descent algorithm</h4>
+        <p>Gradient descent, the cost function J, and the update rules are <strong>completely unchanged</strong>. The algorithm doesn't know or care that x₂ = x₁². It just sees three features and finds the best w₁, w₂, w₃, b.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="eq-block">
+    <span class="eq-label">General degree-d polynomial model</span>
+    <div class="eq-main">ŷ = w₁x + w₂x² + w₃x³ + … + w<sub>d</sub>x<sup>d</sup> + b</div>
+    <div class="eq-note">This is still a linear regression problem — linear in the weights w. Same J, same gradient descent, same update rules.</div>
+  </div>
+
+  <h3>Alternative: The Square Root Feature</h3>
+  <p>Sometimes a curve levels off as x grows — like house prices growing quickly for small houses but tapering off for very large ones. A square root feature can capture this:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Square root model</span>
+    <div class="eq-main">ŷ = w₁x + w₂√x + b</div>
+    <div class="eq-note">√x grows quickly at first then slows down — perfect for diminishing returns. Define x₂ = √x and you have a standard 2-feature linear regression.</div>
+  </div>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 240" role="img">
+      <title>Three curves: linear (straight), quadratic (U-shape), and square root (levelling off) showing different polynomial feature choices</title>
+      <defs>
+        <marker id="a7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#c8c5bf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <!-- Axes -->
+      <line x1="40" y1="200" x2="720" y2="200" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#a7)"/>
+      <line x1="40" y1="200" x2="40" y2="20" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#a7)"/>
+      <text x="380" y="225" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">x (feature)</text>
+      <text x="18" y="110" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680" transform="rotate(-90,18,110)">ŷ</text>
+      <!-- Linear: ŷ = x -->
+      <line x1="50" y1="195" x2="700" y2="30" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Quadratic: ŷ = x^2 (parabola opening up, use u-shape scaled) -->
+      <path d="M 40 200 Q 200 220 380 160 Q 560 80 700 30" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Sqrt: levels off -->
+      <path d="M 40 200 C 100 130 200 95 350 75 S 560 58 700 52" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Legend -->
+      <line x1="60" y1="30" x2="90" y2="30" stroke="#c84b2f" stroke-width="2.5"/>
+      <text x="96" y="34" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">ŷ = w₁x + b (linear)</text>
+      <line x1="240" y1="30" x2="270" y2="30" stroke="#2563eb" stroke-width="2.5"/>
+      <text x="276" y="34" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">ŷ = w₁x + w₂x² + b (quadratic)</text>
+      <line x1="500" y1="30" x2="530" y2="30" stroke="#059669" stroke-width="2.5"/>
+      <text x="536" y="34" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">ŷ = w₁x + w₂√x + b</text>
+    </svg>
+    <figcaption>Figure 5 — Different feature choices produce different curve shapes. The right choice depends on your data — plot it first and look for the pattern.</figcaption>
+  </div>
+
+  <div class="callout yellow">
+    <div class="callout-title">⚠️ Feature Scaling is Critical for Polynomial Features</div>
+    <p>If x ranges from 1 to 1000, then x² ranges from 1 to 1,000,000 and x³ from 1 to 1,000,000,000! These wildly different scales make gradient descent behave terribly. <strong>Always apply feature scaling</strong> (Section 04) when using polynomial features.</p>
+  </div>
+
+  <h3>How Do You Choose Which Features to Use?</h3>
+  <p>Andrew Ng's practical advice:</p>
+  <ul>
+    <li><strong>Plot your data first.</strong> Look at scatter plots of each feature vs y. Does the relationship look linear, curved, levelling off?</li>
+    <li><strong>Start simple.</strong> Try linear first. If J is still large after convergence, try adding quadratic or sqrt features.</li>
+    <li><strong>Use learning curves.</strong> If adding a new feature consistently reduces J on both training and validation sets, it's useful.</li>
+    <li><strong>Domain knowledge helps.</strong> In physics, you might know that drag force ∝ velocity² — so you'd add a v² feature deliberately.</li>
+  </ul>
+
+  <!-- Full Summary -->
+  <h3 style="margin-top:48px;">Module 2.2 — Complete Summary</h3>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="s-icon">📐</div>
+      <div class="s-title">Multiple Features</div>
+      <div class="s-desc">Model becomes ŷ = wᵀx + b. One weight wⱼ per feature xⱼ. Same cost function J as Module 2.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">🔢</div>
+      <div class="s-title">Matrix Form & wᵀ</div>
+      <div class="s-desc">wᵀ (transpose) turns column vector into row vector so (1×n)·(n×1) gives a scalar. X·w computes all m predictions at once.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">1️⃣</div>
+      <div class="s-title">x₀ = 1 Trick</div>
+      <div class="s-desc">Prepend a column of 1s to X and set w₀ = b. Absorbs the bias into the dot product — cleaner math and code.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">⛰️</div>
+      <div class="s-title">Updated Gradient Descent</div>
+      <div class="s-desc">One update rule per wⱼ (using xⱼ). The b update is identical to Module 2. Simultaneous update still required.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">⚖️</div>
+      <div class="s-title">Feature Scaling</div>
+      <div class="s-desc">Mean norm or z-score scaling brings all features to similar ranges. Makes gradient descent dramatically faster.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">⚡</div>
+      <div class="s-title">Choosing α</div>
+      <div class="s-desc">Try 0.001, 0.003, 0.01 … in 3× steps. Plot J vs iterations. Pick largest α where J always decreases.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">〰️</div>
+      <div class="s-title">Polynomial Regression</div>
+      <div class="s-desc">Add x², x³, √x as new features. Still a linear regression problem — same algorithm, just new feature columns.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">🎯</div>
+      <div class="s-title">Feature Engineering</div>
+      <div class="s-desc">You choose the features. Domain knowledge + data plots guide you. Feature scaling essential for polynomial features.</div>
+    </div>
+  </div>
+
+  <div class="eq-block" style="margin-top:32px;">
+    <span class="eq-label">Module 2.2 At a Glance</span>
+    <div style="font-family:var(--mono);font-size:1rem;color:var(--ink);text-align:left;line-height:2.4;">
+      <div>ŷ⁽ⁱ⁾ = <strong>w</strong>ᵀ<strong>x</strong>⁽ⁱ⁾ + b &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;">← model (forward pass)</span></div>
+      <div>J(<strong>w</strong>,b) = (1/2m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)² &nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;">← cost (same as Module 2)</span></div>
+      <div>wⱼ := wⱼ − α · (1/m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾) xⱼ⁽ⁱ⁾ &nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;">← update each weight</span></div>
+      <div>b &nbsp;:= b &nbsp;− α · (1/m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;">← update bias (unchanged)</span></div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ── sq-section wrapper ── */
+.sq-section { max-width: 860px; margin: 64px auto 0; padding: 0 24px 80px; }
+.sq-header { margin-bottom: 40px; }
+.sq-tag {
+  font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: #c84b2f; margin-bottom: 10px;
+}
+.sq-title { font-size: 28px; font-weight: 700; color: #1a1814; margin-bottom: 10px; }
+.sq-subtitle { font-size: 15px; color: #4a4740; line-height: 1.75; max-width: 640px; }
+.sq-legend { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+.sq-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: #4a4740;
+}
+.sq-pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+.sq-pill.easy   .sq-pill-dot { background: #059669; }
+.sq-pill.medium .sq-pill-dot { background: #d97706; }
+.sq-pill.hard   .sq-pill-dot { background: #dc2626; }
+
+/* ── category divider ── */
+.sq-cat-label {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: #8a8680; margin: 32px 0 16px;
+}
+.sq-cat-label::before, .sq-cat-label::after { content: ''; flex: 1; height: 1px; background: #e8e5df; }
+
+/* ── question card ── */
+.sq-card {
+  background: #ffffff; border: 1px solid #e8e5df; border-radius: 14px;
+  padding: 22px 24px; margin-bottom: 14px;
+  transition: box-shadow .18s, border-color .18s;
+}
+.sq-card:hover { box-shadow: 0 2px 14px rgba(0,0,0,.06); border-color: #d0cdc6; }
+.sq-card-top {
+  display: flex; align-items: flex-start; gap: 14px; cursor: pointer;
+  user-select: none;
+}
+.sq-qnum {
+  font-family: 'DM Mono', monospace; font-size: 12px; color: #8a8680;
+  min-width: 26px; padding-top: 2px;
+}
+.sq-qtext {
+  flex: 1; font-size: 15px; color: #1a1814; line-height: 1.75; font-weight: 500;
+}
+.sq-badges { display: flex; gap: 6px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+.sq-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+}
+.sq-badge.easy   { background: #ecfdf5; color: #065f46; }
+.sq-badge.medium { background: #fffbeb; color: #92400e; }
+.sq-badge.hard   { background: #fef2f2; color: #991b1b; }
+.sq-badge.concept { background: #eff6ff; color: #1e40af; }
+.sq-badge.math    { background: #f5f3ff; color: #4c1d95; }
+.sq-toggle {
+  font-size: 16px; color: #8a8680; transition: transform .22s;
+  line-height: 1; flex-shrink: 0; padding-top: 2px;
+}
+.sq-card.open .sq-toggle { transform: rotate(180deg); }
+
+/* ── hint / answer area ── */
+.sq-hint {
+  display: none; margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid #e8e5df;
+}
+.sq-card.open .sq-hint { display: block; }
+.sq-hint-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+  color: #c84b2f; margin-bottom: 8px;
+}
+.sq-hint p { font-size: 14px; color: #4a4740; line-height: 1.75; margin: 0 0 10px; }
+.sq-hint p:last-child { margin-bottom: 0; }
+.sq-eq {
+  background: #f0ede6; border-radius: 8px; padding: 10px 16px;
+  font-family: 'DM Mono', monospace; font-size: 13px; color: #1a1814;
+  margin: 10px 0; display: block;
+}
+
+/* ── bottom note ── */
+.sq-footnote {
+  margin-top: 40px; padding: 18px 22px;
+  background: #faf9f6; border: 1px solid #e8e5df; border-radius: 12px;
+  font-size: 14px; color: #4a4740; line-height: 1.75;
+}
+.sq-footnote strong { color: #1a1814; }
+</style>
+
+<div class="sq-section">
+
+  <div class="sq-header">
+    <div class="sq-tag">Practice Questions</div>
+    <h2 class="sq-title">Think &amp; Answer</h2>
+    <p class="sq-subtitle">
+      Work through these questions on your own before revealing the hints.
+      They cover multiple features, feature scaling, and polynomial regression —
+      exactly the kinds of questions you'd see in an exam on this module.
+    </p>
+    <div class="sq-legend">
+      <span class="sq-pill easy"><span class="sq-pill-dot"></span> Easy</span>
+      <span class="sq-pill medium"><span class="sq-pill-dot"></span> Medium</span>
+      <span class="sq-pill hard"><span class="sq-pill-dot"></span> Hard</span>
+    </div>
+  </div>
+
+  <!-- CATEGORY A — CONCEPTUAL -->
+  <div class="sq-cat-label">Part A — Conceptual &amp; Intuition</div>
+
+  <!-- Q1 -->
+  <div class="sq-card" id="sq1">
+    <div class="sq-card-top" onclick="sqToggle('sq1')">
+      <span class="sq-qnum">Q1</span>
+      <span class="sq-qtext">In multiple linear regression, what does each weight wⱼ represent? How is it different from the single-feature case?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>Each weight wⱼ tells you how much the prediction changes when feature xⱼ increases by one unit, <em>while all other features are held constant</em>. In the single-feature case there is only one w, so there is no need for subscripts. With multiple features, there is a separate weight for every feature, and the model is a hyperplane in n-dimensional space instead of a line in 2D.</p>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="sq-card" id="sq2">
+    <div class="sq-card-top" onclick="sqToggle('sq2')">
+      <span class="sq-qnum">Q2</span>
+      <span class="sq-qtext">Why is feature scaling important for gradient descent? What can go wrong if you skip it?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>When features have very different ranges (e.g. house size in thousands vs number of bedrooms from 1–5), the cost surface becomes a narrow, elongated ellipse. Gradient descent then oscillates back and forth along the steep axis and makes slow progress. Feature scaling makes the cost surface more circular, so gradient descent moves directly toward the minimum and converges much faster.</p>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="sq-card" id="sq3">
+    <div class="sq-card-top" onclick="sqToggle('sq3')">
+      <span class="sq-qnum">Q3</span>
+      <span class="sq-qtext">What is the difference between mean normalisation and Z-score standardisation? When would you prefer one over the other?</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p><strong>Mean normalisation</strong> rescales values to roughly [−1, 1] using: x' = (x − μ) / (max − min). <strong>Z-score standardisation</strong> rescales so that the feature has mean 0 and standard deviation 1: x' = (x − μ) / σ.</p>
+      <p>Z-score is generally preferred because it handles outliers more robustly (the std deviation captures spread, not just max–min). Mean normalisation is simpler and works well when data has no extreme outliers.</p>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="sq-card" id="sq4">
+    <div class="sq-card-top" onclick="sqToggle('sq4')">
+      <span class="sq-qnum">Q4</span>
+      <span class="sq-qtext">Why does the cost function stay the same (MSE) when we move from one feature to many features?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>The cost function measures the difference between the predicted output ŷ and the true output y, regardless of how ŷ was computed. Whether ŷ comes from one feature or fifty, it is still a single number, so the squared error (ŷ − y)² is still a single number. The only thing that changes is how ŷ is calculated — it now uses a dot product of a vector <strong>w</strong> with <strong>x</strong>, but the cost formula itself is unchanged.</p>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="sq-card" id="sq5">
+    <div class="sq-card-top" onclick="sqToggle('sq5')">
+      <span class="sq-qnum">Q5</span>
+      <span class="sq-qtext">What is polynomial regression? Is it still considered "linear" regression? Explain why or why not.</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>Polynomial regression fits a curved relationship by adding higher-order terms like x², x³ as new features. For example, treating x² as a separate feature x₂ = x² turns a curve-fitting problem into a linear regression problem in the expanded feature space.</p>
+      <p>It is still called <em>linear</em> regression because the model is <strong>linear in the parameters</strong> (the weights w). Even though the input features are non-linear transformations of x, the model is still ŷ = w₁x + w₂x² + b, which is linear in w₁ and w₂.</p>
+    </div>
+  </div>
+
+  <!-- CATEGORY B — CALCULATION -->
+  <div class="sq-cat-label">Part B — Calculation &amp; Application</div>
+
+  <!-- Q6 -->
+  <div class="sq-card" id="sq6">
+    <div class="sq-card-top" onclick="sqToggle('sq6')">
+      <span class="sq-qnum">Q6</span>
+      <span class="sq-qtext">A house has features x = [1400, 3, 2, 10] (size in sq ft, bedrooms, bathrooms, age in years) and the model has w = [0.15, 4, 6, −0.1] and b = 50. What is the predicted price ŷ?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>Compute the dot product <strong>w</strong>ᵀ<strong>x</strong> + b:</p>
+      <code class="sq-eq">ŷ = (0.15×1400) + (4×3) + (6×2) + (−0.1×10) + 50</code>
+      <code class="sq-eq">ŷ = 210 + 12 + 12 − 1 + 50 = 283</code>
+      <p>So the predicted price is <strong>$283k</strong>. This is a straightforward dot product — always work through each feature one term at a time.</p>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="sq-card" id="sq7">
+    <div class="sq-card-top" onclick="sqToggle('sq7')">
+      <span class="sq-qnum">Q7</span>
+      <span class="sq-qtext">A feature x has values [100, 200, 300]. Apply Z-score standardisation and write the scaled values. (μ = 200, σ = 81.6)</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>Apply x' = (x − μ) / σ for each value:</p>
+      <code class="sq-eq">x'₁ = (100 − 200) / 81.6 ≈ −1.22</code>
+      <code class="sq-eq">x'₂ = (200 − 200) / 81.6 = 0.00</code>
+      <code class="sq-eq">x'₃ = (300 − 200) / 81.6 ≈ +1.22</code>
+      <p>After scaling, the mean is 0 and values are symmetric around it. This is the expected pattern for Z-score standardisation.</p>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="sq-card" id="sq8">
+    <div class="sq-card-top" onclick="sqToggle('sq8')">
+      <span class="sq-qnum">Q8</span>
+      <span class="sq-qtext">Write the gradient descent update rule for weight w₂ in a model with 3 features. Identify every term and explain what it does.</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <code class="sq-eq">w₂ := w₂ − α · (1/m) Σᵢ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾) · x₂⁽ⁱ⁾</code>
+      <p><strong>α</strong> = learning rate (step size). <strong>1/m</strong> = average over all m training examples. <strong>(ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)</strong> = prediction error for example i. <strong>x₂⁽ⁱ⁾</strong> = the value of feature 2 for example i. The whole sum is the partial derivative of the cost with respect to w₂, telling us which direction to move w₂ to reduce the cost.</p>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="sq-card" id="sq9">
+    <div class="sq-card-top" onclick="sqToggle('sq9')">
+      <span class="sq-qnum">Q9</span>
+      <span class="sq-qtext">You want to model house price as a function of size using a cubic polynomial. Write the model equation and list the features you would feed to a standard linear regression algorithm.</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>Define new features: x₁ = size, x₂ = size², x₃ = size³. The model equation is:</p>
+      <code class="sq-eq">ŷ = w₁x₁ + w₂x₂ + w₃x₃ + b</code>
+      <p>You then feed the three-column feature matrix [x₁, x₂, x₃] to the standard multiple linear regression algorithm. Feature scaling is <strong>especially</strong> important here because x³ can be astronomically large compared to x₁.</p>
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="sq-card" id="sq10">
+    <div class="sq-card-top" onclick="sqToggle('sq10')">
+      <span class="sq-qnum">Q10</span>
+      <span class="sq-qtext">A model with 2 features has w = [2, −3] and b = 1. A single training example is x⁽¹⁾ = [1, 2] and y⁽¹⁾ = 0. Assuming m = 1, compute one gradient descent update for w₁, w₂, and b using α = 0.1.</span>
+      <div class="sq-badges">
+        <span class="sq-badge hard">Hard</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p><strong>Step 1 — Forward pass:</strong></p>
+      <code class="sq-eq">ŷ = w₁x₁ + w₂x₂ + b = 2(1) + (−3)(2) + 1 = 2 − 6 + 1 = −3</code>
+      <p><strong>Step 2 — Errors:</strong></p>
+      <code class="sq-eq">error = ŷ − y = −3 − 0 = −3</code>
+      <p><strong>Step 3 — Gradients (m = 1):</strong></p>
+      <code class="sq-eq">∂J/∂w₁ = error · x₁ = −3 · 1 = −3</code>
+      <code class="sq-eq">∂J/∂w₂ = error · x₂ = −3 · 2 = −6</code>
+      <code class="sq-eq">∂J/∂b  = error      = −3</code>
+      <p><strong>Step 4 — Updates:</strong></p>
+      <code class="sq-eq">w₁ := 2  − 0.1(−3) = 2.3</code>
+      <code class="sq-eq">w₂ := −3 − 0.1(−6) = −2.4</code>
+      <code class="sq-eq">b  := 1  − 0.1(−3) = 1.3</code>
+      <p>Notice all three updates must be computed using the <em>original</em> values before any of them are applied (simultaneous update rule).</p>
+    </div>
+  </div>
+
+  <!-- footnote -->
+  <div class="sq-footnote">
+    <strong>Tip for students:</strong> Try to answer each question fully in your own words before clicking the hint. Writing out your reasoning — even if it's wrong — is the fastest way to find gaps in your understanding. For the calculation questions, work through them on paper first, then check against the hint step by step.
+  </div>
+
+</div><!-- /sq-section -->
+
+<script>
+function sqToggle(id) {
+  var card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+</script>
+
+<footer>
+  <p>Module 2.2 — Multiple Features, Feature Scaling &amp; Polynomial Regression &nbsp;·&nbsp; Notation consistent with Module 2 &nbsp;·&nbsp; Inspired by Andrew Ng's Machine Learning Specialisation</p>
+<p>Prepared by: Sohaib Abdullah</p>
+</footer>
+
+</div><!-- /page -->
+</body>
+</html>

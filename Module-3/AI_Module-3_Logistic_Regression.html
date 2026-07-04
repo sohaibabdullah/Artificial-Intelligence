@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 3 — Logistic Regression</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --ink: #1a1814; --ink2: #4a4740; --ink3: #8a8680;
+  --line: #e8e5df; --accent: #c84b2f; --accent2: #2563eb; --accent3: #059669; --accent4: #7c3aed;
+  --yellow: #f59e0b; --code-bg: #f0ede6;
+  --serif: 'Lora', Georgia, serif; --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace; --r: 12px; --shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;font-size:16px;}
+.page{max-width:860px;margin:0 auto;padding:0 24px 80px;}
+
+/* Hero */
+.hero{padding:72px 0 56px;border-bottom:1px solid var(--line);margin-bottom:64px;}
+.hero-tag{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:40px;padding:4px 14px;display:inline-block;margin-bottom:24px;}
+.hero h1{font-family:var(--serif);font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.2;margin-bottom:20px;}
+.hero p{font-size:1.1rem;color:var(--ink2);max-width:600px;line-height:1.8;}
+.toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:40px;}
+.toc a{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;text-decoration:none;font-size:13px;font-weight:500;color:var(--ink2);display:flex;align-items:center;gap:8px;transition:border-color .2s,color .2s,transform .15s;}
+.toc a:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px);}
+.toc-num{font-family:var(--mono);font-size:11px;color:var(--ink3);min-width:18px;}
+
+/* Sections */
+.section{margin-bottom:80px;}
+.section-label{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--line);}
+h2{font-family:var(--serif);font-size:clamp(1.5rem,3vw,2rem);font-weight:700;margin-bottom:20px;line-height:1.3;}
+h3{font-family:var(--serif);font-size:1.25rem;font-weight:600;margin:32px 0 12px;color:var(--ink);}
+p{color:var(--ink2);margin-bottom:16px;}
+p:last-child{margin-bottom:0;}
+strong{color:var(--ink);font-weight:600;}
+ul,ol{color:var(--ink2);padding-left:24px;margin-bottom:16px;}
+li{margin-bottom:8px;}
+
+/* Callouts */
+.callout{border-left:3px solid var(--accent);background:#fef6f4;border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:24px 0;}
+.callout.blue{border-color:var(--accent2);background:#eff6ff;}
+.callout.green{border-color:var(--accent3);background:#ecfdf5;}
+.callout.purple{border-color:var(--accent4);background:#f5f3ff;}
+.callout.yellow{border-color:var(--yellow);background:#fffbeb;}
+.callout-title{font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;color:var(--accent);}
+.callout.blue .callout-title{color:var(--accent2);}
+.callout.green .callout-title{color:var(--accent3);}
+.callout.purple .callout-title{color:var(--accent4);}
+.callout.yellow .callout-title{color:#92400e;}
+.callout p{color:var(--ink);margin-bottom:0;font-size:15px;}
+
+/* Equations */
+.eq-block{background:var(--code-bg);border-radius:var(--r);padding:20px 28px;margin:20px 0;font-family:var(--mono);text-align:center;border:1px solid var(--line);overflow-x:auto;}
+.eq-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);display:block;margin-bottom:8px;font-family:var(--sans);}
+.eq-main{font-size:1.25rem;color:var(--ink);font-weight:500;line-height:2;}
+.eq-note{font-size:12px;color:var(--ink3);margin-top:10px;font-family:var(--sans);}
+.sub-eqs{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;}
+.sub-eq{flex:1;min-width:180px;background:var(--code-bg);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px;text-align:center;font-family:var(--mono);font-size:1rem;}
+.sub-eq .var-name{font-size:11px;color:var(--ink3);font-family:var(--sans);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;}
+
+/* Variable table */
+.var-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+.var-table th{background:var(--code-bg);padding:10px 14px;text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);border-bottom:1px solid var(--line);}
+.var-table td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top;}
+.var-table td:first-child{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500;}
+.var-table tr:last-child td{border-bottom:none;}
+
+/* Diagram card */
+.diagram-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;margin:28px 0;box-shadow:var(--shadow);overflow:hidden;}
+.diagram-card figcaption{font-size:13px;color:var(--ink3);text-align:center;margin-top:14px;font-style:italic;}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:0;margin:28px 0;}
+.step{display:flex;gap:20px;position:relative;padding-bottom:32px;}
+.step:last-child{padding-bottom:0;}
+.step-line{display:flex;flex-direction:column;align-items:center;}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--accent);color:white;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);}
+.step-num.blue{background:var(--accent2);}
+.step-num.green{background:var(--accent3);}
+.step-connector{width:2px;flex:1;background:var(--line);margin-top:8px;}
+.step:last-child .step-connector{display:none;}
+.step-body{padding-top:4px;flex:1;}
+.step-body h4{font-weight:700;font-size:1rem;margin-bottom:8px;color:var(--ink);}
+.step-body p{font-size:15px;color:var(--ink2);margin-bottom:8px;}
+
+/* Mini equations */
+.mini-eq{background:var(--code-bg);border-radius:8px;padding:10px 16px;font-family:var(--mono);font-size:13px;color:var(--ink);margin:8px 0;display:block;border:1px solid var(--line);}
+.mini-eq.red{background:#fef2f0;color:var(--accent);border-color:#fdd9d0;}
+.mini-eq.green{background:#ecfdf5;color:var(--accent3);border-color:#a7f3d0;}
+.mini-eq.blue{background:#eff6ff;color:var(--accent2);border-color:#bfdbfe;}
+
+/* Summary grid */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin:24px 0;}
+.summary-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:8px;}
+.summary-card .s-icon{font-size:22px;}
+.summary-card .s-title{font-weight:700;font-size:14px;color:var(--ink);}
+.summary-card .s-desc{font-size:13px;color:var(--ink2);line-height:1.6;}
+
+/* Compare grid */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0;}
+.compare-card{border-radius:12px;padding:18px 20px;border:1px solid var(--line);background:var(--card);}
+.compare-card.bad{border-color:#fecaca;background:#fff5f5;}
+.compare-card.good{border-color:#6ee7b7;background:#f0fdf9;}
+.compare-card h4{font-size:14px;font-weight:700;margin:0 0 8px;}
+.compare-card.bad h4{color:var(--accent);}
+.compare-card.good h4{color:var(--accent3);}
+.compare-card p{font-size:13px;color:var(--ink2);margin:0;line-height:1.65;}
+
+/* Table for data */
+.feat-table{width:100%;border-collapse:collapse;font-size:14px;margin:20px 0;}
+.feat-table th{background:var(--code-bg);padding:10px 14px;text-align:center;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);border-bottom:1px solid var(--line);}
+.feat-table td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:13px;color:var(--ink2);}
+.feat-table td.hi{color:var(--accent);font-weight:600;}
+.feat-table td.green{color:var(--accent3);font-weight:600;}
+.feat-table td.label{font-family:var(--sans);text-align:left;color:var(--ink3);font-size:12px;}
+.feat-table tr:last-child td{border-bottom:none;}
+
+footer{border-top:1px solid var(--line);padding:32px 0;text-align:center;color:var(--ink3);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <div class="hero-tag">Module 3 · Supervised Learning</div>
+  <h1>Logistic Regression<br>— Classification, Not Regression</h1>
+  <p>Building on Module 2 and Module 2.1 — same notation (w, b, J, α, gradient descent), but now applied to a completely different kind of problem: predicting categories instead of numbers.</p>
+  <nav class="toc">
+    <a href="#s1"><span class="toc-num">01</span> Why Not Linear?</a>
+    <a href="#s2"><span class="toc-num">02</span> Sigmoid Function</a>
+    <a href="#s3"><span class="toc-num">03</span> Decision Boundary</a>
+    <a href="#s4"><span class="toc-num">04</span> Cost Function</a>
+    <a href="#s5"><span class="toc-num">05</span> Gradient Descent</a>
+    <a href="#s6"><span class="toc-num">06</span> Multiple Features</a>
+    <a href="#s7"><span class="toc-num">07</span> Overfitting</a>
+  </nav>
+</header>
+
+
+<!-- ══ SECTION 1: WHY NOT LINEAR ══ -->
+<section class="section" id="s1">
+  <div class="section-label">Section 01</div>
+  <h2>Why Linear Regression Doesn't Work for Classification</h2>
+
+  <p>So far, Module 2 and Module 2.1 dealt with <strong>regression</strong> — predicting a continuous number like house price. Now consider a different kind of problem:</p>
+
+  <div class="callout">
+    <div class="callout-title">🎯 A New Kind of Question</div>
+    <p>Given a tumour's size, is it <strong>malignant (1)</strong> or <strong>benign (0)</strong>? Given an email's content, is it <strong>spam (1)</strong> or <strong>not spam (0)</strong>? Given a student's exam scores, will they <strong>pass (1)</strong> or <strong>fail (0)</strong>?</p>
+  </div>
+
+  <p>These are <strong>classification</strong> problems — the output y can only take a small number of discrete values. The simplest case, which we focus on in this module, is <strong>binary classification</strong>: y ∈ {0, 1}.</p>
+
+  <table class="var-table">
+    <thead><tr><th>Symbol</th><th>Name</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>y</td><td>Label / class</td><td>The output, but now restricted to y = 0 or y = 1</td></tr>
+      <tr><td>y = 0</td><td>Negative class</td><td>"No", "Benign", "Not spam" — whatever we call the negative outcome</td></tr>
+      <tr><td>y = 1</td><td>Positive class</td><td>"Yes", "Malignant", "Spam" — the outcome we are often trying to detect</td></tr>
+      <tr><td>ŷ</td><td>Prediction</td><td>Now interpreted as a <em>probability</em> that y = 1, not a raw number</td></tr>
+    </tbody>
+  </table>
+
+  <h3>What Happens If We Just Use Linear Regression Anyway?</h3>
+  <p>Let's try it. Suppose we plot tumour size (x) vs. malignant (y=1) / benign (y=0), and fit a straight line ŷ = wx + b as in Module 2:</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 300" role="img">
+      <title>Scatter plot of tumor size versus malignant/benign with a linear regression line that fails to classify correctly, especially with an added outlier</title>
+      <defs><marker id="m3a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- Axes -->
+      <line x1="60" y1="240" x2="700" y2="240" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a1)"/>
+      <line x1="60" y1="240" x2="60" y2="30" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a1)"/>
+      <text x="380" y="270" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">Tumour size (x)</text>
+      <text x="22" y="135" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680" transform="rotate(-90,22,135)">y (0 = benign, 1 = malignant)</text>
+      <!-- y=0 and y=1 gridlines -->
+      <line x1="60" y1="220" x2="700" y2="220" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="60" y1="60" x2="700" y2="60" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <text x="48" y="224" text-anchor="end" font-family="DM Mono,monospace" font-size="12" fill="#8a8680">0</text>
+      <text x="48" y="64" text-anchor="end" font-family="DM Mono,monospace" font-size="12" fill="#8a8680">1</text>
+
+      <!-- y=0 points (benign) -->
+      <circle cx="120" cy="220" r="6" fill="#2563eb"/>
+      <circle cx="170" cy="220" r="6" fill="#2563eb"/>
+      <circle cx="220" cy="220" r="6" fill="#2563eb"/>
+      <circle cx="280" cy="220" r="6" fill="#2563eb"/>
+      <!-- y=1 points (malignant) -->
+      <circle cx="420" cy="60" r="6" fill="#c84b2f"/>
+      <circle cx="470" cy="60" r="6" fill="#c84b2f"/>
+      <circle cx="530" cy="60" r="6" fill="#c84b2f"/>
+      <circle cx="590" cy="60" r="6" fill="#c84b2f"/>
+
+      <!-- Linear regression line (without outlier) -->
+      <line x1="80" y1="225" x2="660" y2="55" stroke="#059669" stroke-width="2.5" stroke-dasharray="6 4"/>
+      <text x="660" y="48" text-anchor="end" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669" font-weight="700">linear fit (without outlier)</text>
+
+      <!-- Outlier point far right -->
+      <circle cx="680" cy="60" r="6" fill="#c84b2f"/>
+      <text x="680" y="40" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f" font-weight="700">+ outlier</text>
+
+      <!-- New linear regression line WITH outlier - shallower slope -->
+      <line x1="80" y1="222" x2="700" y2="110" stroke="#c84b2f" stroke-width="2.5"/>
+      <text x="700" y="125" text-anchor="end" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f" font-weight="700">linear fit (with outlier) — shifted!</text>
+
+      <!-- Threshold line at 0.5 -->
+      <line x1="60" y1="140" x2="700" y2="140" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <text x="65" y="135" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#7c3aed">threshold = 0.5</text>
+    </svg>
+    <figcaption>Figure 1 — A straight line is a poor fit for 0/1 data. Worse, adding a single outlier shifts the whole line and changes the decision boundary dramatically — this is fragile and unreliable.</figcaption>
+  </div>
+
+  <div class="callout yellow">
+    <div class="callout-title">⚠️ Two Big Problems With Linear Regression Here</div>
+    <p>
+      <strong>1. Predictions go outside [0, 1].</strong> ŷ = wx + b can output values like −2 or 5.7 — but a probability must be between 0 and 1. These values are meaningless as probabilities.<br><br>
+      <strong>2. Extremely sensitive to outliers.</strong> As shown in Figure 1, one new data point far to the right can drag the entire line and shift the decision boundary — even though that point doesn't change the underlying pattern at all.
+    </p>
+  </div>
+
+  <p>We need a model whose output is <strong>always between 0 and 1</strong>, so it can be interpreted as a probability, and which doesn't shift wildly with outliers. This is exactly what <strong>logistic regression</strong> provides.</p>
+</section>
+
+<!-- ══ SECTION 2: SIGMOID FUNCTION ══ -->
+<section class="section" id="s2">
+  <div class="section-label">Section 02</div>
+  <h2>The Sigmoid Function — Squashing Numbers into [0, 1]</h2>
+
+  <p>Recall the linear regression model from Module 2.1: <strong>z = wᵀx + b</strong>. This z can be any real number — from −∞ to +∞. We need a function that takes z and "squashes" it into the range [0, 1]. That function is the <strong>sigmoid function</strong> (also called the logistic function — hence the name "logistic regression").</p>
+
+  <div class="eq-block">
+    <span class="eq-label">The Sigmoid Function</span>
+    <div class="eq-main">g(z) = 1 / (1 + e<sup>−z</sup>)</div>
+    <div class="eq-note">e ≈ 2.718 is Euler's number. As z ranges over all real numbers, g(z) always lies between 0 and 1.</div>
+  </div>
+
+  <h3>What Does the Sigmoid Curve Look Like?</h3>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 320" role="img">
+      <title>Sigmoid curve showing S-shape, approaching 0 for large negative z, 0.5 at z=0, and 1 for large positive z</title>
+      <defs><marker id="m3a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- Axes -->
+      <line x1="60" y1="270" x2="700" y2="270" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a2)"/>
+      <line x1="380" y1="290" x2="380" y2="30" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a2)"/>
+      <text x="710" y="274" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">z</text>
+      <text x="390" y="38" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">g(z)</text>
+
+      <!-- y=1 and y=0.5 and y=0 gridlines -->
+      <line x1="60" y1="60" x2="700" y2="60" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="60" y1="165" x2="700" y2="165" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="60" y1="270" x2="700" y2="270" stroke="#e8e5df" stroke-width="1" stroke-dasharray="4 4"/>
+      <text x="48" y="64" text-anchor="end" font-family="DM Mono,monospace" font-size="12" fill="#8a8680">1</text>
+      <text x="48" y="169" text-anchor="end" font-family="DM Mono,monospace" font-size="12" fill="#8a8680">0.5</text>
+      <text x="48" y="274" text-anchor="end" font-family="DM Mono,monospace" font-size="12" fill="#8a8680">0</text>
+
+      <!-- Sigmoid curve -->
+      <path d="M 70 268 C 200 268 280 260 320 230 C 350 205 365 185 380 165 C 395 145 410 125 440 100 C 480 70 560 62 690 61"
+            fill="none" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- Point at z=0, g(z)=0.5 -->
+      <circle cx="380" cy="165" r="6" fill="#7c3aed"/>
+      <text x="392" y="155" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#7c3aed" font-weight="700">g(0) = 0.5</text>
+
+      <!-- Asymptote labels -->
+      <text x="100" y="290" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">z → −∞ &nbsp;⟹&nbsp; g(z) → 0</text>
+      <text x="500" y="48" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">z → +∞ &nbsp;⟹&nbsp; g(z) → 1</text>
+
+      <!-- z axis ticks -->
+      <text x="380" y="290" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#8a8680">0</text>
+      <text x="220" y="290" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#8a8680">−4</text>
+      <text x="540" y="290" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#8a8680">+4</text>
+    </svg>
+    <figcaption>Figure 2 — The sigmoid function g(z) is an S-shaped curve. It is exactly 0.5 at z=0, approaches 0 for very negative z, and approaches 1 for very positive z — but never exactly reaches 0 or 1.</figcaption>
+  </div>
+
+  <h3>The Logistic Regression Model</h3>
+  <p>We build the logistic regression model in two steps — exactly the same first step as Module 2.1, then a new second step:</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">1</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Compute z — same as Module 2.1</h4>
+        <p>Compute the familiar linear combination of features:</p>
+        <span class="mini-eq blue">z = wᵀx + b</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">2</div></div>
+      <div class="step-body">
+        <h4>Apply the sigmoid function to z</h4>
+        <p>Pass z through g(·) to squash it into [0, 1]:</p>
+        <span class="mini-eq green">ŷ = g(z) = g(wᵀx + b) = 1 / (1 + e<sup>−(wᵀx+b)</sup>)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="eq-block">
+    <span class="eq-label">Logistic Regression Model</span>
+    <div class="eq-main">ŷ = 1 / (1 + e<sup>−(<strong>w</strong>ᵀ<strong>x</strong>+b)</sup>)</div>
+    <div class="eq-note">Same parameters w and b as Module 2.1 — but the output is now squashed into [0, 1] and interpreted as a probability.</div>
+  </div>
+
+  <h3>Interpreting the Output as a Probability</h3>
+  <p>The output ŷ is interpreted as the <strong>probability that y = 1</strong>, given input x:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Probabilistic interpretation</span>
+    <div class="eq-main">ŷ = P(y=1 | <strong>x</strong>; <strong>w</strong>, b)</div>
+    <div class="eq-note">"The probability that y=1, given input x, parameterised by w and b"</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">💡 Concrete Example</div>
+    <p>Suppose x = tumour size, and after computing ŷ we get <strong>ŷ = 0.7</strong>. This means: "There is a 70% chance this tumour is malignant (y=1)". Since probabilities must sum to 1: P(y=0|x) + P(y=1|x) = 1, so P(y=0|x) = 0.3 — a 30% chance it's benign.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 3: DECISION BOUNDARY ══ -->
+<section class="section" id="s3">
+  <div class="section-label">Section 03</div>
+  <h2>The Decision Boundary — Turning Probability into a Class</h2>
+
+  <p>The model ŷ outputs a probability — a number between 0 and 1. But ultimately, we want to make a <strong>decision</strong>: is this tumour malignant or not? We need a rule to convert the probability ŷ into a final class prediction, call it <strong>class</strong> ∈ {0, 1}.</p>
+
+  <h3>The 0.5 Threshold Rule</h3>
+  <p>The most common rule: predict class = 1 if ŷ ≥ 0.5, otherwise predict class = 0.</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Default classification rule</span>
+    <div class="eq-main">class = 1 &nbsp;if&nbsp; ŷ ≥ 0.5 &nbsp;&nbsp;&nbsp; class = 0 &nbsp;if&nbsp; ŷ &lt; 0.5</div>
+  </div>
+
+  <p>Recall from Figure 2: g(z) ≥ 0.5 exactly when <strong>z ≥ 0</strong>. So the threshold ŷ ≥ 0.5 translates directly into:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Equivalent condition on z</span>
+    <div class="eq-main">class = 1 &nbsp;if&nbsp; <strong>w</strong>ᵀ<strong>x</strong> + b ≥ 0 &nbsp;&nbsp;&nbsp; class = 0 &nbsp;if&nbsp; <strong>w</strong>ᵀ<strong>x</strong> + b &lt; 0</div>
+    <div class="eq-note">The decision boundary is the line (or curve) where wᵀx + b = 0 exactly.</div>
+  </div>
+
+  <h3>Visualising the Decision Boundary — Linear Case</h3>
+  <p>Suppose we have two features x₁ and x₂, and after training we get w₁ = 1, w₂ = 1, b = −3. The decision boundary is the line x₁ + x₂ = 3:</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 700 400" role="img">
+      <title>2D plot showing a linear decision boundary x1 + x2 = 3 separating two classes</title>
+      <defs><marker id="m3a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- Axes -->
+      <line x1="60" y1="350" x2="640" y2="350" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a3)"/>
+      <line x1="60" y1="350" x2="60" y2="30" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a3)"/>
+      <text x="650" y="354" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">x₁</text>
+      <text x="48" y="24" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">x₂</text>
+
+      <!-- Shading: class=1 region (above the line x1+x2=3) -->
+      <polygon points="60,350 60,30 580,30 580,350" fill="#fef6f4" opacity="0.0"/>
+      <polygon points="580,350 60,350 60,30 580,30" fill="none"/>
+      <!-- Region below line (class=0, shaded blue) -->
+      <polygon points="60,350 580,350 60,30" fill="#eff6ff" opacity="0.5"/>
+      <!-- Region above line (class=1, shaded coral) -->
+      <polygon points="60,30 580,350 580,30" fill="#fef6f4" opacity="0.5"/>
+
+      <!-- Decision boundary line: x1+x2=3, scale: 1 unit = 130px, origin at (60,350) -->
+      <!-- x1=0,x2=3 -> (60, 350-390)=(60,-40) out of range, use x1=0->x2=3 at top edge... recompute scale 1 unit=100px -->
+      <!-- Using scale 100px/unit: x1 from 0-5 (60 to 560), x2 from 0-3.2(350 to 30) -->
+      <line x1="60" y1="50" x2="360" y2="350" stroke="#7c3aed" stroke-width="2.5"/>
+      <text x="250" y="160" font-family="DM Mono,monospace" font-size="13" fill="#7c3aed" font-weight="600" transform="rotate(-50,250,160)">x₁ + x₂ = 3</text>
+
+      <!-- y=0 points (blue region) -->
+      <circle cx="130" cy="320" r="6" fill="#2563eb"/>
+      <circle cx="180" cy="290" r="6" fill="#2563eb"/>
+      <circle cx="100" cy="250" r="6" fill="#2563eb"/>
+      <circle cx="220" cy="320" r="6" fill="#2563eb"/>
+      <circle cx="150" cy="200" r="6" fill="#2563eb"/>
+
+      <!-- y=1 points (coral region) -->
+      <circle cx="350" cy="180" r="6" fill="#c84b2f"/>
+      <circle cx="450" cy="150" r="6" fill="#c84b2f"/>
+      <circle cx="400" cy="250" r="6" fill="#c84b2f"/>
+      <circle cx="500" cy="80" r="6" fill="#c84b2f"/>
+      <circle cx="280" cy="100" r="6" fill="#c84b2f"/>
+
+      <!-- Region labels -->
+      <text x="160" y="100" font-family="Plus Jakarta Sans,sans-serif" font-size="14" fill="#1d4ed8" font-weight="700">class = 0</text>
+      <text x="155" y="120" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#1d4ed8">w₁x₁+w₂x₂+b &lt; 0</text>
+      <text x="450" y="310" font-family="Plus Jakarta Sans,sans-serif" font-size="14" fill="#c84b2f" font-weight="700">class = 1</text>
+      <text x="420" y="330" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f">w₁x₁+w₂x₂+b ≥ 0</text>
+
+      <!-- Legend -->
+      <circle cx="450" cy="40" r="5" fill="#2563eb"/>
+      <text x="460" y="44" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">y=0 examples</text>
+      <circle cx="450" cy="60" r="5" fill="#c84b2f"/>
+      <text x="460" y="64" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#4a4740">y=1 examples</text>
+    </svg>
+    <figcaption>Figure 3 — The decision boundary wᵀx + b = 0 is the line x₁ + x₂ = 3. On one side, the model predicts class=0; on the other, class=1. Points exactly on the boundary have ŷ = 0.5.</figcaption>
+  </div>
+
+  <h3>Non-Linear Decision Boundaries</h3>
+  <p>What if the two classes can't be separated by a straight line? Just like Module 2.1's polynomial regression, we can add <strong>polynomial features</strong> like x₁², x₂², x₁x₂ to z = wᵀx + b. The decision boundary z = 0 then becomes a curve (e.g. a circle or ellipse):</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 700 380" role="img">
+      <title>2D plot showing a circular decision boundary separating two classes, created using polynomial features</title>
+      <defs><marker id="m3a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <line x1="60" y1="330" x2="640" y2="330" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a4)"/>
+      <line x1="60" y1="330" x2="60" y2="30" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a4)"/>
+      <text x="650" y="334" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">x₁</text>
+      <text x="48" y="24" font-family="Plus Jakarta Sans,sans-serif" font-size="13" fill="#8a8680">x₂</text>
+
+      <!-- Outer region class=0 -->
+      <rect x="60" y="30" width="580" height="300" fill="#eff6ff" opacity="0.5"/>
+      <!-- Circle: class=1 inside -->
+      <circle cx="350" cy="180" r="120" fill="#fef6f4" opacity="0.7" stroke="#7c3aed" stroke-width="2.5"/>
+      <text x="350" y="84" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#7c3aed" font-weight="600">x₁² + x₂² = r²</text>
+
+      <!-- y=1 points (inside circle) -->
+      <circle cx="320" cy="170" r="6" fill="#c84b2f"/>
+      <circle cx="380" cy="200" r="6" fill="#c84b2f"/>
+      <circle cx="350" cy="140" r="6" fill="#c84b2f"/>
+      <circle cx="300" cy="220" r="6" fill="#c84b2f"/>
+      <circle cx="400" cy="160" r="6" fill="#c84b2f"/>
+
+      <!-- y=0 points (outside circle) -->
+      <circle cx="120" cy="80" r="6" fill="#2563eb"/>
+      <circle cx="180" cy="290" r="6" fill="#2563eb"/>
+      <circle cx="550" cy="100" r="6" fill="#2563eb"/>
+      <circle cx="580" cy="280" r="6" fill="#2563eb"/>
+      <circle cx="100" cy="250" r="6" fill="#2563eb"/>
+      <circle cx="500" cy="300" r="6" fill="#2563eb"/>
+
+      <!-- Region labels -->
+      <text x="350" y="185" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="14" fill="#c84b2f" font-weight="700">class = 1</text>
+      <text x="180" y="60" font-family="Plus Jakarta Sans,sans-serif" font-size="14" fill="#1d4ed8" font-weight="700">class = 0</text>
+    </svg>
+    <figcaption>Figure 4 — By adding polynomial features (e.g. z = w₁x₁² + w₂x₂² + b), the decision boundary becomes a circle. The model and cost function are unchanged — only the input features change, exactly like Module 2.1's polynomial regression.</figcaption>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">✅ Reusing Module 2.1's Big Idea</div>
+    <p>Just as Module 2.1 showed that x², x³, √x are "just new features" for linear regression, the same trick works here: x₁², x₂², x₁x₂ are new features for logistic regression. The algorithm doesn't change — only the feature engineering does. This lets logistic regression model arbitrarily complex decision boundaries.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 4: COST FUNCTION ══ -->
+<section class="section" id="s4">
+  <div class="section-label">Section 04</div>
+  <h2>The Cost Function — Why Squared Error Fails Here</h2>
+
+  <h3>What Goes Wrong If We Reuse Module 2's Cost Function?</h3>
+  <p>In Module 2, we used J(w,b) = (1/2m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)² — the squared error cost. What if we plug our new sigmoid-based ŷ into this same formula?</p>
+
+  <div class="callout yellow">
+    <div class="callout-title">⚠️ The Problem — A Non-Convex, Wiggly Cost Surface</div>
+    <p>Because ŷ = g(wᵀx+b) involves the sigmoid (a nonlinear function), squaring (ŷ−y) and summing produces a cost function J(w,b) that is <strong>non-convex</strong> — it has many local minima ("wiggles") like an egg carton. Gradient descent could get stuck in a local minimum and never find the true best w, b.</p>
+  </div>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 280" role="img">
+      <title>Comparison of convex bowl-shaped cost function from linear regression versus non-convex wiggly cost function if squared error were used for logistic regression</title>
+      <defs><marker id="m3a5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- LEFT panel: convex bowl (Module 2) -->
+      <text x="185" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#059669">✓ Convex J(w) — Module 2</text>
+      <line x1="40" y1="240" x2="340" y2="240" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a5)"/>
+      <line x1="40" y1="240" x2="40" y2="40" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a5)"/>
+      <path d="M60,220 Q190,60 320,220" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="190" cy="65" r="5" fill="#059669"/>
+      <text x="190" y="55" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">global minimum</text>
+      <text x="190" y="262" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">Gradient descent always finds it</text>
+
+      <!-- Divider -->
+      <line x1="380" y1="20" x2="380" y2="265" stroke="#e8e5df" stroke-width="1"/>
+
+      <!-- RIGHT panel: non-convex wiggly -->
+      <text x="570" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#c84b2f">✗ Non-convex J(w) — squared error + sigmoid</text>
+      <line x1="420" y1="240" x2="720" y2="240" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a5)"/>
+      <line x1="420" y1="240" x2="420" y2="40" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a5)"/>
+      <path d="M440,200 C460,120 480,160 500,140 C520,120 540,180 560,100 C580,40 610,80 630,150 C650,200 680,180 700,220"
+            fill="none" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="560" cy="42" r="5" fill="#059669"/>
+      <text x="560" y="32" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">true global min</text>
+      <circle cx="500" cy="140" r="5" fill="#c84b2f"/>
+      <text x="500" y="160" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">local min — stuck here!</text>
+      <text x="570" y="262" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">Gradient descent may get trapped</text>
+    </svg>
+    <figcaption>Figure 5 — Squared error works beautifully for linear regression (left, always bowl-shaped) but produces a wiggly, non-convex surface when combined with the sigmoid (right). We need a different cost function.</figcaption>
+  </div>
+
+  <h3>The Solution — The Logistic Loss Function</h3>
+  <p>Instead of squared error, logistic regression uses a different per-example <strong>loss function</strong> L, designed specifically to remain convex when combined with the sigmoid:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Logistic Loss for one example (i)</span>
+    <div class="eq-main" style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+      <span>L(ŷ⁽ⁱ⁾, y⁽ⁱ⁾) = −log(ŷ⁽ⁱ⁾) &nbsp;&nbsp; if y⁽ⁱ⁾ = 1</span>
+      <span>L(ŷ⁽ⁱ⁾, y⁽ⁱ⁾) = −log(1 − ŷ⁽ⁱ⁾) &nbsp;&nbsp; if y⁽ⁱ⁾ = 0</span>
+    </div>
+  </div>
+
+  <h3>Why Does This Make Intuitive Sense?</h3>
+  <p>Let's break down each case and see why this loss function "punishes" wrong predictions heavily and "rewards" correct ones.</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 320" role="img">
+      <title>Two graphs showing the loss curves -log(f) for y=1 and -log(1-f) for y=0, both showing low loss for correct confident predictions and very high loss for confident wrong predictions</title>
+      <defs><marker id="m3a6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <!-- LEFT: y=1 case, -log(f) -->
+      <text x="185" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#1a1814">When y = 1: Loss = −log(f)</text>
+      <line x1="50" y1="260" x2="340" y2="260" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a6)"/>
+      <line x1="50" y1="260" x2="50" y2="40" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a6)"/>
+      <text x="345" y="264" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">ŷ</text>
+      <text x="35" y="40" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">Loss</text>
+      <!-- -log(f) curve: at f=1, loss=0; at f→0, loss→∞ -->
+      <path d="M 320 256 C 280 256 220 250 170 220 C 120 190 80 130 55 45"
+            fill="none" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="320" y="270" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#8a8680">f=1</text>
+      <text x="55" y="270" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#8a8680">f=0</text>
+      <circle cx="320" cy="256" r="5" fill="#059669"/>
+      <text x="295" y="245" text-anchor="end" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">f≈1, y=1: loss≈0 ✓</text>
+      <text x="65" y="60" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">f→0, y=1: loss→∞ ✗</text>
+
+      <!-- Divider -->
+      <line x1="380" y1="20" x2="380" y2="285" stroke="#e8e5df" stroke-width="1"/>
+
+      <!-- RIGHT: y=0 case, -log(1-f) -->
+      <text x="570" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#1a1814">When y = 0: Loss = −log(1−f)</text>
+      <line x1="430" y1="260" x2="720" y2="260" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a6)"/>
+      <line x1="430" y1="260" x2="430" y2="40" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#m3a6)"/>
+      <text x="725" y="264" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">ŷ</text>
+      <text x="415" y="40" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">Loss</text>
+      <!-- -log(1-f) curve: mirror image - at f=0, loss=0; at f→1, loss→∞ -->
+      <path d="M 450 256 C 490 256 550 250 600 220 C 650 190 690 130 715 45"
+            fill="none" stroke="#c84b2f" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="450" y="270" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#8a8680">f=0</text>
+      <text x="715" y="270" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#8a8680">f=1</text>
+      <circle cx="450" cy="256" r="5" fill="#059669"/>
+      <text x="470" y="245" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">f≈0, y=0: loss≈0 ✓</text>
+      <text x="600" y="60" text-anchor="end" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">f→1, y=0: loss→∞ ✗</text>
+    </svg>
+    <figcaption>Figure 6 — Both loss curves give near-zero loss when the prediction matches the true label, and approach infinity when the prediction is confidently wrong. This is exactly the behaviour we want — and it produces a convex J(w,b).</figcaption>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">💡 Intuition Summary</div>
+    <p>
+      <strong>If y=1</strong> (the true answer is "yes") and the model predicts ŷ close to 1 (also "yes, confidently") → loss ≈ 0. Good!<br>
+      <strong>If y=1</strong> but the model predicts ŷ close to 0 (confidently "no") → loss → ∞. The model is severely punished for being confidently wrong.<br><br>
+      The same logic applies symmetrically when y=0.
+    </p>
+  </div>
+
+  <h3>Combining Both Cases into One Formula</h3>
+  <p>Writing two separate cases is correct but inconvenient for taking derivatives. Since y is always either 0 or 1, we can combine both cases into a <strong>single elegant formula</strong>:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Combined Logistic Loss — single formula</span>
+    <div class="eq-main">L(ŷ⁽ⁱ⁾, y⁽ⁱ⁾) = −y⁽ⁱ⁾log(ŷ⁽ⁱ⁾) − (1−y⁽ⁱ⁾)log(1−ŷ⁽ⁱ⁾)</div>
+    <div class="eq-note">When y⁽ⁱ⁾=1, the second term vanishes (multiplied by 0) and we get −log(f). When y⁽ⁱ⁾=0, the first term vanishes and we get −log(1−f). Same formula, both cases!</div>
+  </div>
+
+  <h3>Walking Through All Four Possibilities</h3>
+  <p>For simplicity, drop the superscript ⁽ⁱ⁾, so the combined formula reads <strong>L = −y·log(ŷ) − (1−y)·log(1−ŷ)</strong>. There are exactly four combinations of (true label y, prediction ŷ) — let's check that the loss behaves correctly in every single one.</p>
+
+  <div class="diagram-card" style="padding:0;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <thead>
+        <tr style="background:var(--code-bg);">
+          <th style="padding:12px 16px;text-align:center;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);">Case</th>
+          <th style="padding:12px 16px;text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);">Reasoning</th>
+          <th style="padding:12px 16px;text-align:center;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Case 1: y=1, yhat=1 -->
+        <tr>
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent3);">y=1<br>ŷ=1</td>
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);color:var(--ink2);font-size:13.5px;line-height:1.7;">
+            Since y=1, the term −(1−y)·log(1−ŷ) becomes −(1−1)·log(…) = −0·log(…) = <strong>0</strong>. It vanishes.<br>
+            The remaining term is −y·log(ŷ) = −1·log(1).<br>
+            Since <strong>log(1) = 0</strong>, this gives −1·0 = <strong>0</strong>.
+          </td>
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);text-align:center;">
+            <span class="mini-eq green" style="display:inline-block;margin:0;">L = 0</span><br>
+            <span style="font-size:12px;color:var(--accent3);font-weight:600;">✓ Correct, confident prediction — no penalty</span>
+          </td>
+        </tr>
+        <!-- Case 2: y=1, yhat=0 -->
+        <tr style="background:var(--bg);">
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);">y=1<br>ŷ=0</td>
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);color:var(--ink2);font-size:13.5px;line-height:1.7;">
+            Since y=1, again −(1−y)·log(1−ŷ) = −0·log(…) = <strong>0</strong>. It vanishes.<br>
+            The remaining term is −y·log(ŷ) = −1·log(0).<br>
+            Since <strong>log(0) = −∞</strong>, this gives −1·(−∞) = <strong>+∞</strong>.
+          </td>
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);text-align:center;">
+            <span class="mini-eq red" style="display:inline-block;margin:0;">L → ∞</span><br>
+            <span style="font-size:12px;color:var(--accent);font-weight:600;">✗ Wrong, confident prediction — huge penalty</span>
+          </td>
+        </tr>
+        <!-- Case 3: y=0, yhat=0 -->
+        <tr>
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent3);">y=0<br>ŷ=0</td>
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);color:var(--ink2);font-size:13.5px;line-height:1.7;">
+            Since y=0, the term −y·log(ŷ) becomes −0·log(…) = <strong>0</strong>. It vanishes.<br>
+            The remaining term is −(1−y)·log(1−ŷ) = −(1−0)·log(1−0) = −1·log(1).<br>
+            Since <strong>log(1) = 0</strong>, this gives −1·0 = <strong>0</strong>.
+          </td>
+          <td style="padding:14px 16px;border-bottom:1px solid var(--line);text-align:center;">
+            <span class="mini-eq green" style="display:inline-block;margin:0;">L = 0</span><br>
+            <span style="font-size:12px;color:var(--accent3);font-weight:600;">✓ Correct, confident prediction — no penalty</span>
+          </td>
+        </tr>
+        <!-- Case 4: y=0, yhat=1 -->
+        <tr style="background:var(--bg);">
+          <td style="padding:14px 16px;text-align:center;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);">y=0<br>ŷ=1</td>
+          <td style="padding:14px 16px;color:var(--ink2);font-size:13.5px;line-height:1.7;">
+            Since y=0, again −y·log(ŷ) = −0·log(…) = <strong>0</strong>. It vanishes.<br>
+            The remaining term is −(1−y)·log(1−ŷ) = −(1−0)·log(1−1) = −1·log(0).<br>
+            Since <strong>log(0) = −∞</strong>, this gives −1·(−∞) = <strong>+∞</strong>.
+          </td>
+          <td style="padding:14px 16px;text-align:center;">
+            <span class="mini-eq red" style="display:inline-block;margin:0;">L → ∞</span><br>
+            <span style="font-size:12px;color:var(--accent);font-weight:600;">✗ Wrong, confident prediction — huge penalty</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout green" style="margin-top:24px;">
+    <div class="callout-title">✅ The pattern in one sentence</div>
+    <p>In every row, exactly <strong>one</strong> of the two terms in −y·log(ŷ) − (1−y)·log(1−ŷ) survives (the other multiplies by 0 and vanishes). The surviving term is 0 when the prediction matches the true label (because log(1)=0), and shoots to +∞ when the prediction confidently contradicts the true label (because log(0)=−∞). This single formula automatically handles all four cases correctly — that's the elegance of combining them.</p>
+  </div>
+
+  <h3>The Full Cost Function J(w, b)</h3>
+  <p>Exactly as in Module 2, the cost function J is the <strong>average loss over all m training examples</strong>:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Logistic Regression Cost Function</span>
+    <div class="eq-main">J(<strong>w</strong>,b) = <sup>1</sup>/<sub>m</sub> &sum;<sub>i=1</sub><sup>m</sup> L(ŷ⁽ⁱ⁾, y⁽ⁱ⁾)</div>
+    <div class="eq-main" style="margin-top:14px;">= −<sup>1</sup>/<sub>m</sub> &sum;<sub>i=1</sub><sup>m</sup> [y⁽ⁱ⁾log(ŷ⁽ⁱ⁾) + (1−y⁽ⁱ⁾)log(1−ŷ⁽ⁱ⁾)]</div>
+    <div class="eq-note">This is called the <strong>binary cross-entropy</strong> loss. Unlike squared error + sigmoid, this J(w,b) IS convex — gradient descent is guaranteed to reach the global minimum.</div>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-card bad">
+      <h4>Module 2 — squared error</h4>
+      <p>J(w,b) = (1/2m)Σ(f(x⁽ⁱ⁾)−y⁽ⁱ⁾)². Perfect for regression — convex when f is linear. Non-convex when f involves sigmoid.</p>
+    </div>
+    <div class="compare-card good">
+      <h4>Module 3 — logistic loss</h4>
+      <p>J(w,b) = −(1/m)Σ[y log(f) + (1−y)log(1−f)]. Designed specifically so J stays convex even with the sigmoid in f.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SECTION 5: GRADIENT DESCENT ══ -->
+<section class="section" id="s5">
+  <div class="section-label">Section 05</div>
+  <h2>Gradient Descent for Logistic Regression</h2>
+
+  <h3>The Astonishing Result</h3>
+  <p>We derived a brand new cost function J(w,b) — the binary cross-entropy. You might expect the gradient descent update rules to look completely different from Module 2. They don't.</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Gradient Descent — Logistic Regression (repeat until convergence)</span>
+    <div class="eq-main" style="display:flex;flex-direction:column;gap:14px;align-items:center;">
+      <span>w<sub>j</sub> := w<sub>j</sub> − &alpha; &middot; <sup>1</sup>/<sub>m</sub> &sum;<sub>i=1</sub><sup>m</sup> (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾) x<sub>j</sub>⁽ⁱ⁾</span>
+      <span>b &nbsp;&nbsp;:= b &nbsp;&nbsp;− &alpha; &middot; <sup>1</sup>/<sub>m</sub> &sum;<sub>i=1</sub><sup>m</sup> (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)</span>
+    </div>
+    <div class="eq-note">Compare to Module 2.1's update rules — they look <strong>identical</strong>! The only difference is what ŷ means.</div>
+  </div>
+
+  <h3>Side-by-Side: Module 2.1 vs Module 3</h3>
+
+  <div class="diagram-card" style="padding:0;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <thead>
+        <tr style="background:var(--code-bg);">
+          <th style="padding:12px 18px;text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);"></th>
+          <th style="padding:12px 18px;text-align:center;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);">Module 2.1 (Linear Regression)</th>
+          <th style="padding:12px 18px;text-align:center;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);">Module 3 (Logistic Regression)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;border-bottom:1px solid var(--line);">prediction</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);">ŷ = wᵀx + b</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);color:var(--accent2);">ŷ = g(wᵀx + b) &nbsp; — sigmoid!</td>
+        </tr>
+        <tr style="background:var(--bg);">
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;border-bottom:1px solid var(--line);">J(w,b)</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);">(1/2m)Σ(ŷ−y)²</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);color:var(--accent2);">−(1/m)Σ[y log ŷ + (1−y)log(1−ŷ)]</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;border-bottom:1px solid var(--line);">wⱼ update</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);">wⱼ := wⱼ − α(1/m)Σ(ŷ−y)xⱼ</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line);color:var(--accent3);">wⱼ := wⱼ − α(1/m)Σ(ŷ−y)xⱼ &nbsp; ← same form!</td>
+        </tr>
+        <tr style="background:var(--bg);">
+          <td style="padding:12px 18px;color:var(--ink3);font-size:13px;">b update</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;">b := b − α(1/m)Σ(ŷ−y)</td>
+          <td style="padding:12px 18px;text-align:center;font-family:var(--mono);font-size:13px;color:var(--accent3);">b := b − α(1/m)Σ(ŷ−y) &nbsp; ← same form!</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">✅ Why This Matters</div>
+    <p>The update rule formula <strong>looks</strong> identical to Module 2.1's. The crucial difference is hidden inside <strong>ŷ</strong>: in Module 2.1, ŷ = wᵀx+b is a straight line; in Module 3, ŷ = g(wᵀx+b) involves the sigmoid. Same update rule structure, different underlying function — this is why we kept the exact same notation. Everything you learned about gradient descent, learning rate α, convergence checking, and feature scaling from Module 2.1 <strong>applies directly here, unchanged</strong>.</p>
+  </div>
+
+  <h3>The Algorithm Step by Step</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-line"><div class="step-num">1</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Forward pass — compute z and then ŷ</h4>
+        <p>For every example i: compute z⁽ⁱ⁾ = wᵀx⁽ⁱ⁾ + b, then ŷ⁽ⁱ⁾ = g(z⁽ⁱ⁾) = 1/(1+e<sup>−z⁽ⁱ⁾</sup>).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">2</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Compute the error f⁽ⁱ⁾ − y⁽ⁱ⁾</h4>
+        <p>This looks exactly like Module 2's error ŷ−y, except f⁽ⁱ⁾ is now a probability between 0 and 1, and y⁽ⁱ⁾ is exactly 0 or 1.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">3</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Compute gradients ∂J/∂wⱼ and ∂J/∂b</h4>
+        <p>Average (f⁽ⁱ⁾−y⁽ⁱ⁾)·xⱼ⁽ⁱ⁾ for each weight, and average (f⁽ⁱ⁾−y⁽ⁱ⁾) for the bias — identical formula structure to Module 2.1.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <h4>Update wⱼ and b simultaneously</h4>
+        <p>wⱼ := wⱼ − α·∂J/∂wⱼ &nbsp; and &nbsp; b := b − α·∂J/∂b, using old values for both — the same simultaneous update rule from Module 2.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SECTION 6: MULTIPLE FEATURES ══ -->
+<section class="section" id="s6">
+  <div class="section-label">Section 06</div>
+  <h2>Multiple Features &amp; Vectorisation — Recap from Module 2.1</h2>
+
+  <p>Everything from Module 2.1 about multiple features transfers directly:</p>
+
+  <div class="sub-eqs">
+    <div class="sub-eq">
+      <span class="var-name">Vectorised z</span>
+      z = <strong>w</strong>ᵀ<strong>x</strong> + b = w₁x₁ + w₂x₂ + … + wₙxₙ + b
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">Vectorised model</span>
+      ŷ = g(<strong>w</strong>ᵀ<strong>x</strong> + b)
+    </div>
+  </div>
+
+  <p>The x₀=1 trick from Module 2.1 still applies — prepend a column of 1s to X, set w₀ = b, and z = Xw is computed for all m examples in one matrix multiplication, exactly as before.</p>
+
+  <h3>Feature Scaling Still Matters</h3>
+  <p>If x₁ ∈ [1, 1000] and x₂ ∈ [0, 5], gradient descent will zigzag here just as it did in Module 2.1. Apply <strong>mean normalisation</strong> or <strong>z-score standardisation</strong> before training — the formulas are unchanged:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Feature scaling — same formulas as Module 2.1</span>
+    <div class="eq-main">x̃<sub>j</sub> = (x<sub>j</sub> − μ<sub>j</sub>) / &sigma;<sub>j</sub> &nbsp;&nbsp;&nbsp; (z-score) &nbsp;&nbsp;or&nbsp;&nbsp; x̃<sub>j</sub> = (x<sub>j</sub> − μ<sub>j</sub>) / (max(x<sub>j</sub>) − min(x<sub>j</sub>)) &nbsp;&nbsp;&nbsp; (mean norm.)</div>
+  </div>
+
+  <h3>Choosing α — Same Diagnostic Process</h3>
+  <p>The learning curve diagnostic from Module 2.1 (try α = 0.001, 0.003, 0.01, 0.03, … in 3× steps, plot J vs iterations, choose the largest α where J decreases monotonically) applies identically here. J is now the binary cross-entropy, but the diagnostic procedure is unchanged.</p>
+
+  <div class="callout purple">
+    <div class="callout-title">🔑 The Big Picture</div>
+    <p>Notice how little is genuinely <em>new</em> in this module. The notation (w, b, x⁽ⁱ⁾, m, n, α, J, ∂J/∂w, ∂J/∂b), the vectorisation (wᵀx), the x₀=1 trick, feature scaling, and the α-tuning procedure are <strong>all inherited directly from Module 2 and 2.1</strong>. The genuinely new ingredients are: (1) the sigmoid function g(z), and (2) the logistic loss function. Everything else is reuse.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 7: OVERFITTING ══ -->
+<section class="section" id="s7">
+  <div class="section-label">Section 07</div>
+  <h2>Overfitting &amp; Regularisation — A Preview</h2>
+
+  <h3>The Problem with Too Many Features</h3>
+  <p>Module 2.1 showed that adding polynomial features (x², x³, √x) can help fit curved data. Module 3 showed the same trick creates curved decision boundaries. But what happens if we add <em>too many</em> features, or features of very high degree?</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 760 300" role="img">
+      <title>Three panels showing underfit, well-fit, and overfit decision boundaries for classification data</title>
+      <defs><marker id="m3a7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+      <!-- Panel 1: underfit -->
+      <text x="125" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#c84b2f">Underfit (high bias)</text>
+      <rect x="40" y="40" width="170" height="190" fill="#faf9f6" stroke="#e8e5df" stroke-width="1"/>
+      <line x1="40" y1="135" x2="210" y2="135" stroke="#7c3aed" stroke-width="2.5"/>
+      <!-- mixed points -->
+      <circle cx="70" cy="70" r="5" fill="#c84b2f"/>
+      <circle cx="120" cy="60" r="5" fill="#c84b2f"/>
+      <circle cx="170" cy="90" r="5" fill="#2563eb"/>
+      <circle cx="90" cy="180" r="5" fill="#2563eb"/>
+      <circle cx="150" cy="200" r="5" fill="#c84b2f"/>
+      <circle cx="180" cy="170" r="5" fill="#2563eb"/>
+      <circle cx="60" cy="200" r="5" fill="#2563eb"/>
+      <circle cx="130" cy="110" r="5" fill="#c84b2f"/>
+      <text x="125" y="250" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f">Too simple — misses the pattern</text>
+
+      <!-- Panel 2: well-fit -->
+      <text x="380" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#059669">Just right ("generalises")</text>
+      <rect x="295" y="40" width="170" height="190" fill="#faf9f6" stroke="#e8e5df" stroke-width="1"/>
+      <path d="M295,200 Q350,80 465,100" fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+      <circle cx="320" cy="70" r="5" fill="#c84b2f"/>
+      <circle cx="370" cy="60" r="5" fill="#c84b2f"/>
+      <circle cx="430" cy="90" r="5" fill="#c84b2f"/>
+      <circle cx="340" cy="180" r="5" fill="#2563eb"/>
+      <circle cx="400" cy="200" r="5" fill="#2563eb"/>
+      <circle cx="440" cy="170" r="5" fill="#2563eb"/>
+      <circle cx="310" cy="200" r="5" fill="#2563eb"/>
+      <circle cx="380" cy="110" r="5" fill="#c84b2f"/>
+      <text x="380" y="250" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#059669">Smooth boundary, generalises well</text>
+
+      <!-- Panel 3: overfit -->
+      <text x="635" y="24" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#c84b2f">Overfit (high variance)</text>
+      <rect x="550" y="40" width="170" height="190" fill="#faf9f6" stroke="#e8e5df" stroke-width="1"/>
+      <path d="M550,200 Q580,80 610,120 Q625,150 635,90 Q645,60 660,130 Q675,180 695,100 Q705,70 720,140"
+            fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+      <circle cx="575" cy="70" r="5" fill="#c84b2f"/>
+      <circle cx="625" cy="60" r="5" fill="#c84b2f"/>
+      <circle cx="685" cy="90" r="5" fill="#c84b2f"/>
+      <circle cx="595" cy="180" r="5" fill="#2563eb"/>
+      <circle cx="655" cy="200" r="5" fill="#2563eb"/>
+      <circle cx="695" cy="170" r="5" fill="#2563eb"/>
+      <circle cx="565" cy="200" r="5" fill="#2563eb"/>
+      <circle cx="635" cy="110" r="5" fill="#c84b2f"/>
+      <text x="635" y="250" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f">Wiggly — memorised the noise</text>
+    </svg>
+    <figcaption>Figure 7 — Too few features (or too low a degree) underfits. Too many features (or too high a degree) overfits — the decision boundary contorts itself to perfectly classify every training point, including noise, and will generalise poorly to new data.</figcaption>
+  </div>
+
+  <div class="callout yellow">
+    <div class="callout-title">⚠️ The Overfitting Problem</div>
+    <p>An overfit model achieves J(w,b) ≈ 0 on the training set — it appears to "perfectly" fit the data. But when shown new examples it has never seen, it performs poorly. The model has memorised the training set rather than learning the underlying pattern.</p>
+  </div>
+
+  <h3>Regularisation — A Quick Preview</h3>
+  <p>The fix (covered in detail in the next module) is <strong>regularisation</strong>: add a penalty term to J(w,b) that discourages the weights wⱼ from becoming too large. Intuitively, large weights are what allow the model to create wildly wiggly boundaries — penalising them keeps the boundary smooth.</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Preview — Regularised cost function</span>
+    <div class="eq-main">J(<strong>w</strong>,b) = [original cost] &nbsp;+&nbsp; <sup>&lambda;</sup>/<sub>2m</sub> &sum;<sub>j=1</sub><sup>n</sup> w<sub>j</sub>²</div>
+    <div class="eq-note">λ (lambda) is a new hyperparameter controlling how much we penalise large weights. λ=0 means no regularisation (risk of overfitting); very large λ means heavily penalised weights (risk of underfitting). Covered fully in Module 4.</div>
+  </div>
+
+  <!-- Full Summary -->
+  <h3 style="margin-top:48px;">Module 3 — Complete Summary</h3>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="s-icon">🎯</div>
+      <div class="s-title">Classification</div>
+      <div class="s-desc">y ∈ {0,1}. Linear regression fails because predictions can exceed [0,1] and are highly sensitive to outliers.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">∿</div>
+      <div class="s-title">Sigmoid Function</div>
+      <div class="s-desc">g(z) = 1/(1+e⁻ᶻ) squashes any real number into (0,1). ŷ = g(wᵀx+b) is interpreted as P(y=1|x).</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">📏</div>
+      <div class="s-title">Decision Boundary</div>
+      <div class="s-desc">Predict class=1 if wᵀx+b ≥ 0. The boundary wᵀx+b=0 can be linear or — with polynomial features — curved.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">📉</div>
+      <div class="s-title">Logistic Loss</div>
+      <div class="s-desc">L = −y log(ŷ) − (1−y) log(1−ŷ). Convex when combined with sigmoid, unlike squared error.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">⛰️</div>
+      <div class="s-title">Gradient Descent</div>
+      <div class="s-desc">wⱼ := wⱼ − α(1/m)Σ(ŷ−y)xⱼ — identical form to Module 2.1, only ŷ changed.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">🔢</div>
+      <div class="s-title">Multiple Features</div>
+      <div class="s-desc">z = wᵀx + b, x₀=1 trick, feature scaling, α-tuning — all reused unchanged from Module 2.1.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">〰️</div>
+      <div class="s-title">Overfitting</div>
+      <div class="s-desc">Too many/high-degree features → wiggly boundary that memorises training data but fails on new data.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">🛡️</div>
+      <div class="s-title">Regularisation (preview)</div>
+      <div class="s-desc">Add λ/2m·Σwⱼ² to J(w,b) to penalise large weights and keep the boundary smooth. Full detail next module.</div>
+    </div>
+  </div>
+
+  <div class="eq-block" style="margin-top:32px;">
+    <span class="eq-label">Module 3 in four lines</span>
+    <div style="font-family:var(--mono);font-size:1rem;color:var(--ink);text-align:left;line-height:2.4;">
+      <div>z⁽ⁱ⁾ = <strong>w</strong>ᵀ<strong>x</strong>⁽ⁱ⁾ + b &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;">← linear combination (Module 2.1)</span></div>
+      <div>f⁽ⁱ⁾ = g(z⁽ⁱ⁾) = 1/(1+e⁻ᶻ⁽ⁱ⁾) &nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;">← sigmoid (NEW)</span></div>
+      <div>J(<strong>w</strong>,b) = −(1/m)Σ[y log f + (1−y)log(1−f)] &nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;">← logistic loss (NEW)</span></div>
+      <div>w<sub>j</sub> := w<sub>j</sub> − α(1/m)Σ(f⁽ⁱ⁾−y⁽ⁱ⁾)x<sub>j</sub>⁽ⁱ⁾ &nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;">← same update rule shape</span></div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ── sq-section wrapper ── */
+.sq-section { max-width: 860px; margin: 64px auto 0; padding: 0 24px 80px; }
+.sq-header { margin-bottom: 40px; }
+.sq-tag {
+  font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: #c84b2f; margin-bottom: 10px;
+}
+.sq-title { font-size: 28px; font-weight: 700; color: #1a1814; margin-bottom: 10px; }
+.sq-subtitle { font-size: 15px; color: #4a4740; line-height: 1.75; max-width: 640px; }
+.sq-legend { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+.sq-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: #4a4740;
+}
+.sq-pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+.sq-pill.easy   .sq-pill-dot { background: #059669; }
+.sq-pill.medium .sq-pill-dot { background: #d97706; }
+.sq-pill.hard   .sq-pill-dot { background: #dc2626; }
+
+/* ── category divider ── */
+.sq-cat-label {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: #8a8680; margin: 32px 0 16px;
+}
+.sq-cat-label::before, .sq-cat-label::after { content: ''; flex: 1; height: 1px; background: #e8e5df; }
+
+/* ── question card ── */
+.sq-card {
+  background: #ffffff; border: 1px solid #e8e5df; border-radius: 14px;
+  padding: 22px 24px; margin-bottom: 14px;
+  transition: box-shadow .18s, border-color .18s;
+}
+.sq-card:hover { box-shadow: 0 2px 14px rgba(0,0,0,.06); border-color: #d0cdc6; }
+.sq-card-top {
+  display: flex; align-items: flex-start; gap: 14px; cursor: pointer;
+  user-select: none;
+}
+.sq-qnum {
+  font-family: 'DM Mono', monospace; font-size: 12px; color: #8a8680;
+  min-width: 26px; padding-top: 2px;
+}
+.sq-qtext {
+  flex: 1; font-size: 15px; color: #1a1814; line-height: 1.75; font-weight: 500;
+}
+.sq-badges { display: flex; gap: 6px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+.sq-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+}
+.sq-badge.easy   { background: #ecfdf5; color: #065f46; }
+.sq-badge.medium { background: #fffbeb; color: #92400e; }
+.sq-badge.hard   { background: #fef2f2; color: #991b1b; }
+.sq-badge.concept { background: #eff6ff; color: #1e40af; }
+.sq-badge.math    { background: #f5f3ff; color: #4c1d95; }
+.sq-toggle {
+  font-size: 16px; color: #8a8680; transition: transform .22s;
+  line-height: 1; flex-shrink: 0; padding-top: 2px;
+}
+.sq-card.open .sq-toggle { transform: rotate(180deg); }
+
+/* ── hint / answer area ── */
+.sq-hint {
+  display: none; margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid #e8e5df;
+}
+.sq-card.open .sq-hint { display: block; }
+.sq-hint-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+  color: #c84b2f; margin-bottom: 8px;
+}
+.sq-hint p { font-size: 14px; color: #4a4740; line-height: 1.75; margin: 0 0 10px; }
+.sq-hint p:last-child { margin-bottom: 0; }
+.sq-eq {
+  background: #f0ede6; border-radius: 8px; padding: 10px 16px;
+  font-family: 'DM Mono', monospace; font-size: 13px; color: #1a1814;
+  margin: 10px 0; display: block;
+}
+
+/* ── bottom note ── */
+.sq-footnote {
+  margin-top: 40px; padding: 18px 22px;
+  background: #faf9f6; border: 1px solid #e8e5df; border-radius: 12px;
+  font-size: 14px; color: #4a4740; line-height: 1.75;
+}
+.sq-footnote strong { color: #1a1814; }
+</style>
+
+<div class="sq-section">
+
+  <div class="sq-header">
+    <div class="sq-tag">Practice Questions</div>
+    <h2 class="sq-title">Think &amp; Answer</h2>
+    <p class="sq-subtitle">
+      Work through these questions on your own before revealing the hints.
+      They cover the sigmoid function, logistic loss, decision boundaries, and gradient descent —
+      exactly the kinds of questions you'd see in an exam on logistic regression.
+    </p>
+    <div class="sq-legend">
+      <span class="sq-pill easy"><span class="sq-pill-dot"></span> Easy</span>
+      <span class="sq-pill medium"><span class="sq-pill-dot"></span> Medium</span>
+      <span class="sq-pill hard"><span class="sq-pill-dot"></span> Hard</span>
+    </div>
+  </div>
+
+  <!-- CATEGORY A — CONCEPTUAL -->
+  <div class="sq-cat-label">Part A — Conceptual &amp; Intuition</div>
+
+  <!-- Q1 -->
+  <div class="sq-card" id="sq1">
+    <div class="sq-card-top" onclick="sqToggle('sq1')">
+      <span class="sq-qnum">Q1</span>
+      <span class="sq-qtext">Why can't we use linear regression for a binary classification problem like spam detection? What goes wrong?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>Linear regression outputs any real number (e.g. −3, 0.7, 5.2), but a binary classifier must output a value between 0 and 1 to represent a probability. If you force a threshold like 0.5 onto a linear output, adding more extreme data points can shift the line and move the threshold to the wrong place, misclassifying examples that were previously correct. Logistic regression solves this by squashing the output through the sigmoid function, guaranteeing an output in (0, 1).</p>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="sq-card" id="sq2">
+    <div class="sq-card-top" onclick="sqToggle('sq2')">
+      <span class="sq-qnum">Q2</span>
+      <span class="sq-qtext">Describe the sigmoid function in words. What are its output range and its value at z = 0?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>The sigmoid function g(z) = 1 / (1 + e⁻ᶻ) takes any real number z and squashes it into the range (0, 1). As z → +∞, g(z) → 1; as z → −∞, g(z) → 0. At z = 0, g(0) = 1/(1+1) = <strong>0.5</strong> exactly. This means the model is 50% confident when z = 0 — that is the decision boundary.</p>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="sq-card" id="sq3">
+    <div class="sq-card-top" onclick="sqToggle('sq3')">
+      <span class="sq-qnum">Q3</span>
+      <span class="sq-qtext">What is a decision boundary? For a logistic regression model, where exactly does it lie?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>The decision boundary is the line (or surface) that separates the region where the model predicts class 1 from the region where it predicts class 0. For logistic regression with a threshold of 0.5, this corresponds to g(z) = 0.5, which occurs when z = 0. So the decision boundary is defined by the equation <strong>w·x + b = 0</strong> — a line in 2D, a plane in 3D, a hyperplane in higher dimensions.</p>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="sq-card" id="sq4">
+    <div class="sq-card-top" onclick="sqToggle('sq4')">
+      <span class="sq-qnum">Q4</span>
+      <span class="sq-qtext">Why don't we use the mean squared error (MSE) cost function for logistic regression? What problem does it cause?</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>When the sigmoid function is combined with MSE, the resulting cost surface becomes <strong>non-convex</strong> — it has many local minima. Gradient descent can get stuck in one of these local minima and never find the globally best parameters.</p>
+      <p>The logistic (cross-entropy) loss is carefully chosen so that when composed with the sigmoid, the cost surface is convex — shaped like a bowl with a single global minimum — guaranteeing that gradient descent will always converge to the best solution.</p>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="sq-card" id="sq5">
+    <div class="sq-card-top" onclick="sqToggle('sq5')">
+      <span class="sq-qnum">Q5</span>
+      <span class="sq-qtext">Explain the intuition behind the logistic loss for a single example. Why does the loss become very large when the model is confidently wrong?</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge concept">Concept</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>When y = 1, the loss is −log(f). If the model predicts f ≈ 1 (correctly confident), then −log(1) = 0 — no penalty. But if the model predicts f ≈ 0 (confidently wrong), then −log(0) → ∞ — a huge penalty. The same logic applies when y = 0 using −log(1 − f).</p>
+      <p>This asymmetry is exactly what we want: the algorithm is punished severely for being very sure about the wrong answer, forcing it to quickly move the parameters away from such bad regions.</p>
+    </div>
+  </div>
+
+  <!-- CATEGORY B — CALCULATION -->
+  <div class="sq-cat-label">Part B — Calculation &amp; Application</div>
+
+  <!-- Q6 -->
+  <div class="sq-card" id="sq6">
+    <div class="sq-card-top" onclick="sqToggle('sq6')">
+      <span class="sq-qnum">Q6</span>
+      <span class="sq-qtext">A logistic regression model has w = [2, −1] and b = −3. A test example is x = [1, 2]. Compute z, then g(z) (the predicted probability). Would this example be classified as 1 or 0 using a 0.5 threshold?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p><strong>Step 1 — Compute z:</strong></p>
+      <code class="sq-eq">z = w·x + b = (2)(1) + (−1)(2) + (−3) = 2 − 2 − 3 = −3</code>
+      <p><strong>Step 2 — Apply sigmoid:</strong></p>
+      <code class="sq-eq">g(−3) = 1 / (1 + e³) ≈ 1 / (1 + 20.09) ≈ 0.047</code>
+      <p>The predicted probability is ≈ 4.7%, which is well below 0.5, so the example is classified as <strong>class 0</strong>.</p>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="sq-card" id="sq7">
+    <div class="sq-card-top" onclick="sqToggle('sq7')">
+      <span class="sq-qnum">Q7</span>
+      <span class="sq-qtext">Compute the logistic loss for a single example where y = 1 and the model predicts f = 0.8. Then compute it for f = 0.2. Which loss is larger and why?</span>
+      <div class="sq-badges">
+        <span class="sq-badge easy">Easy</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>When y = 1, the loss is L = −log(f).</p>
+      <code class="sq-eq">L(f = 0.8) = −log(0.8) ≈ 0.223</code>
+      <code class="sq-eq">L(f = 0.2) = −log(0.2) ≈ 1.609</code>
+      <p>The loss for f = 0.2 is much larger because the model is predicting only 20% probability for a true positive — it is confidently wrong. The logarithm penalises this heavily, which is exactly the desired behaviour.</p>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="sq-card" id="sq8">
+    <div class="sq-card-top" onclick="sqToggle('sq8')">
+      <span class="sq-qnum">Q8</span>
+      <span class="sq-qtext">Write the gradient descent update rule for w₁ in logistic regression. How does it look compared to the linear regression update rule? Are they the same or different?</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <code class="sq-eq">w₁ := w₁ − α · (1/m) Σᵢ (f⁽ⁱ⁾ − y⁽ⁱ⁾) · x₁⁽ⁱ⁾</code>
+      <p>The formula looks <em>identical</em> to linear regression! The key difference is what <strong>f⁽ⁱ⁾</strong> means: in linear regression f⁽ⁱ⁾ = w·x + b (raw linear output), while in logistic regression f⁽ⁱ⁾ = g(w·x + b) (sigmoid-transformed output). The shape of the update rule is the same; only the forward pass differs.</p>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="sq-card" id="sq9">
+    <div class="sq-card-top" onclick="sqToggle('sq9')">
+      <span class="sq-qnum">Q9</span>
+      <span class="sq-qtext">A model has w = [3, −2] and b = 1 with two features. Write the equation of its decision boundary and describe what it looks like geometrically in 2D.</span>
+      <div class="sq-badges">
+        <span class="sq-badge medium">Medium</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p>The decision boundary occurs where z = 0:</p>
+      <code class="sq-eq">3x₁ − 2x₂ + 1 = 0</code>
+      <p>Rearranging: x₂ = (3x₁ + 1) / 2. This is a straight line in the (x₁, x₂) plane. Points above the line (where z &lt; 0) will be predicted as class 0; points below (where z &gt; 0) will be predicted as class 1. Logistic regression always produces a <em>linear</em> decision boundary with standard features.</p>
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="sq-card" id="sq10">
+    <div class="sq-card-top" onclick="sqToggle('sq10')">
+      <span class="sq-qnum">Q10</span>
+      <span class="sq-qtext">Given a single training example x⁽¹⁾ = [1, 1], y⁽¹⁾ = 1, and current parameters w = [0, 0], b = 0 with α = 0.1, perform one full gradient descent step for w₁, w₂, and b. (Use the logistic regression update rule.)</span>
+      <div class="sq-badges">
+        <span class="sq-badge hard">Hard</span>
+        <span class="sq-badge math">Math</span>
+      </div>
+      <span class="sq-toggle">▾</span>
+    </div>
+    <div class="sq-hint">
+      <div class="sq-hint-label">Sample Answer</div>
+      <p><strong>Step 1 — Forward pass:</strong></p>
+      <code class="sq-eq">z = 0(1) + 0(1) + 0 = 0  →  f = g(0) = 0.5</code>
+      <p><strong>Step 2 — Error (m = 1):</strong></p>
+      <code class="sq-eq">f − y = 0.5 − 1 = −0.5</code>
+      <p><strong>Step 3 — Gradients:</strong></p>
+      <code class="sq-eq">∂J/∂w₁ = (−0.5)(1) = −0.5</code>
+      <code class="sq-eq">∂J/∂w₂ = (−0.5)(1) = −0.5</code>
+      <code class="sq-eq">∂J/∂b  = −0.5</code>
+      <p><strong>Step 4 — Updates:</strong></p>
+      <code class="sq-eq">w₁ := 0 − 0.1(−0.5) = 0.05</code>
+      <code class="sq-eq">w₂ := 0 − 0.1(−0.5) = 0.05</code>
+      <code class="sq-eq">b  := 0 − 0.1(−0.5) = 0.05</code>
+      <p>All parameters increase, which makes sense: the model predicted 0.5 when the true label was 1, so it needs to increase z (and therefore f) by increasing the weights.</p>
+    </div>
+  </div>
+
+  <!-- footnote -->
+  <div class="sq-footnote">
+    <strong>Tip for students:</strong> Try to answer each question fully in your own words before clicking the hint. Writing out your reasoning — even if it's wrong — is the fastest way to find gaps in your understanding. For the calculation questions, work through them on paper first, then check against the hint step by step.
+  </div>
+
+</div><!-- /sq-section -->
+
+<script>
+function sqToggle(id) {
+  var card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+</script>
+
+<footer>
+  <p>Module 3 — Logistic Regression &nbsp;·&nbsp; Notation consistent with Module 2 and 2.1 &nbsp;·&nbsp; Inspired by Andrew Ng's Machine Learning Specialisation</p>
+</footer>
+
+</div>
+</body>
+</html>

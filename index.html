@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI — A Complete Course from First Principles</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Design tokens ── */
+:root {
+  --night:   #0d0f14;
+  --deep:    #13161e;
+  --surface: #1c2030;
+  --rim:     #2a2f42;
+  --muted:   #5a627a;
+  --pale:    #9ba3bc;
+  --light:   #dde2f0;
+  --white:   #f4f6fc;
+
+  --gold:    #e8b84b;
+  --gold2:   #f5d078;
+  --coral:   #e05c4b;
+  --teal:    #38c4a8;
+  --violet:  #7c6af7;
+  --blue:    #4a8cf5;
+
+  --serif:  'Instrument Serif', Georgia, serif;
+  --sans:   'Inter', system-ui, sans-serif;
+  --mono:   'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--night);
+  color: var(--light);
+  line-height: 1.7;
+  font-size: 16px;
+  min-height: 100vh;
+}
+
+/* ══════════════
+   HERO
+══════════════ */
+.hero {
+  position: relative;
+  padding: 100px 24px 80px;
+  text-align: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--rim);
+}
+
+/* The signature element: a radial glow that looks like a brain light-source */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 700px;
+  background: radial-gradient(ellipse at center,
+    rgba(232,184,75,.18) 0%,
+    rgba(122,106,247,.10) 35%,
+    transparent 70%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 24px; display: inline-block;
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.8rem, 7vw, 5rem);
+  font-weight: 400; line-height: 1.1;
+  color: var(--white); margin-bottom: 12px;
+}
+
+.hero h1 em {
+  font-style: italic; color: var(--gold);
+}
+
+.hero-sub {
+  font-size: 1.05rem; color: var(--pale);
+  max-width: 620px; margin: 0 auto 40px;
+  line-height: 1.8;
+}
+
+/* Curriculum pill-trail */
+.curriculum-trail {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 8px; max-width: 860px; margin: 0 auto;
+}
+.trail-pill {
+  font-family: var(--mono); font-size: 11px;
+  padding: 5px 14px; border-radius: 40px;
+  border: 1px solid var(--rim);
+  color: var(--pale); background: rgba(255,255,255,.03);
+  display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.trail-pill .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+}
+.trail-pill.active { border-color: var(--gold); color: var(--gold2); }
+.trail-pill.soon   { opacity: .45; }
+.trail-arrow {
+  font-size: 13px; color: var(--rim); align-self: center;
+}
+
+/* ══════════════
+   INTRO SECTION
+══════════════ */
+.intro {
+  max-width: 780px; margin: 0 auto;
+  padding: 72px 24px 64px;
+  border-bottom: 1px solid var(--rim);
+}
+.intro h2 {
+  font-family: var(--serif); font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 400; color: var(--white); margin-bottom: 20px;
+  line-height: 1.3;
+}
+.intro p {
+  color: var(--pale); margin-bottom: 16px; font-size: 15.5px; line-height: 1.85;
+}
+.intro p:last-child { margin-bottom: 0; }
+.intro strong { color: var(--light); font-weight: 600; }
+
+/* ══════════════
+   COURSE MAP
+══════════════ */
+.course-map {
+  max-width: 880px; margin: 0 auto;
+  padding: 64px 24px 0;
+}
+.course-map-title {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 32px;
+  display: flex; align-items: center; gap: 12px;
+}
+.course-map-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--rim);
+}
+
+.roadmap {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px; margin-bottom: 64px;
+}
+.roadmap-item {
+  background: var(--surface); border: 1px solid var(--rim);
+  border-radius: 10px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+  transition: border-color .2s, transform .15s;
+}
+.roadmap-item:hover { border-color: var(--gold); transform: translateY(-2px); }
+.roadmap-item.done  { border-color: rgba(232,184,75,.35); }
+.roadmap-item.soon  { opacity: .5; }
+.roadmap-num {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: .1em;
+}
+.roadmap-label {
+  font-size: 13px; font-weight: 600; color: var(--light); line-height: 1.4;
+}
+.roadmap-badge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .08em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 20px;
+  align-self: flex-start; margin-top: 2px;
+}
+.roadmap-badge.available { background: rgba(56,196,168,.15); color: var(--teal); }
+.roadmap-badge.coming    { background: rgba(90,98,122,.2);   color: var(--muted); }
+
+/* ══════════════
+   MODULE GROUPS
+══════════════ */
+.modules-section {
+  max-width: 880px; margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.unit {
+  border: 1px solid var(--rim);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  background: var(--surface);
+}
+
+/* Unit header */
+.unit-header {
+  padding: 22px 28px 18px;
+  border-bottom: 1px solid var(--rim);
+  display: flex; align-items: flex-start; gap: 18px;
+  background: linear-gradient(135deg, rgba(255,255,255,.02) 0%, transparent 60%);
+}
+.unit-num {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  min-width: 38px; padding-top: 4px; letter-spacing: .06em;
+}
+.unit-info { flex: 1; }
+.unit-title {
+  font-family: var(--serif); font-size: 1.4rem; font-weight: 400;
+  color: var(--white); margin-bottom: 4px; line-height: 1.3;
+}
+.unit-desc { font-size: 13px; color: var(--pale); line-height: 1.6; }
+.unit-tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; padding: 4px 12px; border-radius: 20px;
+  flex-shrink: 0; align-self: flex-start; margin-top: 2px;
+}
+.unit-tag.lr  { background: rgba(74,140,245,.15); color: var(--blue); }
+.unit-tag.log { background: rgba(224,92,75,.15);  color: var(--coral); }
+.unit-tag.nn  { background: rgba(124,106,247,.15); color: var(--violet); }
+
+/* Module rows */
+.module-list { padding: 4px 0; }
+
+.module-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-bottom: 1px solid var(--rim);
+}
+.module-row:last-child { border-bottom: none; }
+
+.module-main {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 28px 14px;
+}
+.module-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.module-icon.lr  { background: rgba(74,140,245,.12); }
+.module-icon.log { background: rgba(224,92,75,.12); }
+.module-icon.nn  { background: rgba(124,106,247,.12); }
+
+.module-body { flex: 1; }
+.module-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 3px;
+}
+.module-title {
+  font-size: 14px; font-weight: 600; color: var(--light);
+  margin-bottom: 3px;
+}
+.module-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+.module-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(232,184,75,.1); border: 1px solid rgba(232,184,75,.25);
+  color: var(--gold); text-decoration: none; font-size: 12px; font-weight: 600;
+  padding: 7px 16px; border-radius: 8px; white-space: nowrap; flex-shrink: 0;
+  transition: background .15s, border-color .15s;
+}
+.module-link:hover { background: rgba(232,184,75,.18); border-color: var(--gold); }
+.module-link.soon {
+  background: transparent; border-color: var(--rim);
+  color: var(--muted); cursor: default; pointer-events: none;
+}
+
+/* Hands-on strip */
+.hands-on {
+  background: rgba(56,196,168,.04);
+  border-top: 1px dashed rgba(56,196,168,.2);
+  padding: 14px 28px 16px;
+}
+.hands-on-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--teal); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.hands-on-label::before {
+  content: '▸'; font-size: 9px;
+}
+.hands-on-items {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.ho-item {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(56,196,168,.08); border: 1px solid rgba(56,196,168,.2);
+  border-radius: 8px; padding: 6px 13px;
+  font-size: 12px; color: var(--teal); text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+.ho-item:hover { background: rgba(56,196,168,.15); border-color: var(--teal); }
+.ho-item.data {
+  background: rgba(74,140,245,.08); border-color: rgba(74,140,245,.2);
+  color: var(--blue);
+}
+.ho-item.data:hover { background: rgba(74,140,245,.15); border-color: var(--blue); }
+.ho-item.coming-ho {
+  opacity: .45; pointer-events: none; color: var(--muted);
+  background: transparent; border-color: var(--rim);
+}
+.ho-icon { font-size: 13px; }
+
+/* ══════════════
+   COMING SOON BLOCK
+══════════════ */
+.coming-soon-row {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 28px;
+}
+.coming-badge {
+  background: var(--deep); border: 1px solid var(--rim);
+  border-radius: 8px; padding: 14px 22px;
+  display: flex; align-items: center; gap: 12px;
+  flex: 1;
+}
+.coming-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--rim); flex-shrink: 0;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: .4; }
+  50%       { opacity: 1; }
+}
+.coming-text { font-size: 13px; color: var(--muted); }
+.coming-text strong { color: var(--pale); font-weight: 500; }
+
+/* ══════════════
+   FOOTER
+══════════════ */
+footer {
+  border-top: 1px solid var(--rim); padding: 36px 24px;
+  text-align: center; color: var(--muted); font-size: 13px;
+}
+footer a { color: var(--pale); text-decoration: none; }
+footer a:hover { color: var(--gold); }
+.footer-logo {
+  font-family: var(--serif); font-size: 1.3rem; font-style: italic;
+  color: var(--gold); margin-bottom: 8px;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HERO ══════════ -->
+<header class="hero">
+  <div class="hero-eyebrow">AI — A Complete Course from First Principles</div>
+  <h1>Learning <em>Artificial Intelligence</em><br>the right way</h1>
+  <p class="hero-sub">From the mathematics of a single neuron all the way to building autonomous AI agents — each concept earned before the next one starts.</p>
+
+  <div class="curriculum-trail">
+    <span class="trail-pill active"><span class="dot"></span>Linear Regression</span>
+    <span class="trail-arrow">→</span>
+    <span class="trail-pill active"><span class="dot"></span>Logistic Regression</span>
+    <span class="trail-arrow">→</span>
+    <span class="trail-pill active"><span class="dot"></span>Neural Networks</span>
+    <span class="trail-arrow">→</span>
+    <span class="trail-pill soon"><span class="dot"></span>CNN</span>
+    <span class="trail-arrow">→</span>
+    <span class="trail-pill soon"><span class="dot"></span>RNN</span>
+    <span class="trail-arrow">→</span>
+    <span class="trail-pill soon"><span class="dot"></span>Transformers</span>
+    <span class="trail-arrow">→</span>
+    <span class="trail-pill soon"><span class="dot"></span>LLM Engineering</span>
+    <span class="trail-arrow">→</span>
+    <span class="trail-pill soon"><span class="dot"></span>Agentic AI</span>
+  </div>
+</header>
+
+<!-- ══════════ INTRODUCTION ══════════ -->
+<section class="intro">
+  <h2>What this course is about — and why it is structured this way</h2>
+  <p>
+    Most AI courses hand you a library and tell you to call <code style="font-family:var(--mono);font-size:13px;background:var(--surface);padding:1px 6px;border-radius:4px;color:var(--gold);">model.fit()</code>. This one doesn't. We start from the mathematics of a straight line and build every idea from scratch — because understanding <em>why</em> something works is the only reliable way to know what to do when it doesn't.
+  </p>
+  <p>
+    We follow <strong>Andrew Ng's curriculum philosophy</strong> closely: notation stays consistent across every module, each new concept is an extension of the last, and no equation appears without an intuition behind it. By the time you reach transformers and LLMs, you will have built every component they depend on with your own hands.
+  </p>
+  <p>
+    The course covers the full modern stack: <strong>supervised learning</strong> (linear regression, logistic regression), <strong>deep learning</strong> (neural networks, CNNs for vision, RNNs for sequences), <strong>attention and transformers</strong>, and finally <strong>applied AI engineering</strong> — working with large language models and building autonomous agentic systems. Theory and hands-on implementation go side by side throughout.
+  </p>
+</section>
+
+<!-- ══════════ COURSE ROADMAP ══════════ -->
+<div class="course-map">
+  <div class="course-map-title">Full Course Roadmap</div>
+  <div class="roadmap">
+    <div class="roadmap-item done">
+      <span class="roadmap-num">1.1 — 1.2</span>
+      <span class="roadmap-label">AI &amp; Its Impact · Definitions &amp; Taxonomy</span>
+      <span class="roadmap-badge available">Available</span>
+    </div>
+    <div class="roadmap-item done">
+      <span class="roadmap-num">2.1 — 2.2</span>
+      <span class="roadmap-label">Linear Regression · Multiple Features</span>
+      <span class="roadmap-badge available">Available</span>
+    </div>
+    <div class="roadmap-item done">
+      <span class="roadmap-num">3</span>
+      <span class="roadmap-label">Logistic Regression &amp; Classification</span>
+      <span class="roadmap-badge available">Available</span>
+    </div>
+    <div class="roadmap-item done">
+      <span class="roadmap-num">4.1 — 4.2</span>
+      <span class="roadmap-label">Neural Networks · Backpropagation</span>
+      <span class="roadmap-badge available">4.1 Available</span>
+    </div>
+    <div class="roadmap-item soon">
+      <span class="roadmap-num">5</span>
+      <span class="roadmap-label">Convolutional Neural Networks (CNN)</span>
+      <span class="roadmap-badge coming">Coming Soon</span>
+    </div>
+    <div class="roadmap-item soon">
+      <span class="roadmap-num">6</span>
+      <span class="roadmap-label">Recurrent Neural Networks (RNN / LSTM)</span>
+      <span class="roadmap-badge coming">Coming Soon</span>
+    </div>
+    <div class="roadmap-item soon">
+      <span class="roadmap-num">7</span>
+      <span class="roadmap-label">Attention &amp; Transformers</span>
+      <span class="roadmap-badge coming">Coming Soon</span>
+    </div>
+    <div class="roadmap-item soon">
+      <span class="roadmap-num">8</span>
+      <span class="roadmap-label">AI Engineering with LLMs</span>
+      <span class="roadmap-badge coming">Coming Soon</span>
+    </div>
+    <div class="roadmap-item soon">
+      <span class="roadmap-num">9</span>
+      <span class="roadmap-label">Agentic AI Systems</span>
+      <span class="roadmap-badge coming">Coming Soon</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODULES ══════════ -->
+<div class="modules-section">
+
+  <!-- ── UNIT 1: FOUNDATIONS ── -->
+  <div class="unit">
+    <div class="unit-header">
+      <span class="unit-num">Unit 1</span>
+      <div class="unit-info">
+        <div class="unit-title">Foundations of AI</div>
+        <div class="unit-desc">What AI is, where it came from, and how to think about it clearly before writing a single line of code.</div>
+      </div>
+    </div>
+    <div class="module-list">
+
+      <!-- Module 1.1 -->
+      <div class="module-row">
+        <div class="module-main">
+          <div class="module-icon lr">🌐</div>
+          <div class="module-body">
+            <div class="module-label">Module 1.1</div>
+            <div class="module-title">AI and Its Impact</div>
+            <div class="module-desc">What AI is changing, why it matters now, and how to situate yourself in this moment.</div>
+          </div>
+          <a href="Module-1/AI_and_its_impact_1.1.html" class="module-link">Open ↗</a>
+        </div>
+      </div>
+
+      <!-- Module 1.2 -->
+      <div class="module-row">
+        <div class="module-main">
+          <div class="module-icon lr">🗂️</div>
+          <div class="module-body">
+            <div class="module-label">Module 1.2</div>
+            <div class="module-title">Definition and Taxonomy of AI</div>
+            <div class="module-desc">Supervised vs unsupervised, narrow vs general, ML vs DL — the vocabulary you need to read anything in the field.</div>
+          </div>
+          <a href="Module-1/Definition_and_Taxonomy_of_AI_1.2.html" class="module-link">Open ↗</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── UNIT 2: LINEAR REGRESSION ── -->
+  <div class="unit">
+    <div class="unit-header">
+      <span class="unit-num">Unit 2</span>
+      <div class="unit-info">
+        <div class="unit-title">Linear Regression</div>
+        <div class="unit-desc">The foundation of everything. One equation, one cost function, one algorithm — understood completely before moving on.</div>
+      </div>
+      <span class="unit-tag lr">Supervised Learning</span>
+    </div>
+    <div class="module-list">
+
+      <!-- Module 2.1 -->
+      <div class="module-row">
+        <div class="module-main">
+          <div class="module-icon lr">📈</div>
+          <div class="module-body">
+            <div class="module-label">Module 2.1</div>
+            <div class="module-title">Linear Regression — Single Variable</div>
+            <div class="module-desc">The model ŷ = wx + b, cost function J(w,b), gradient descent, convergence. Every step proved and visualised.</div>
+          </div>
+          <a href="Module-2/AI Module-2.1 -Linear Regression-Singlefeature.html" class="module-link">Open ↗</a>
+        </div>
+        <!-- Hands-on 2.1 -->
+        <div class="hands-on">
+          <div class="hands-on-label">Hands-on — Implementation 1</div>
+          <div class="hands-on-items">
+            <a href="Module-2/ex1data1.csv" class="ho-item data" download>
+              <span class="ho-icon">📄</span> ex1data1.csv
+            </a>
+            <a href="implementation-1.html" class="ho-item">
+              <span class="ho-icon">🐍</span> Implementation 1 — Code Walkthrough
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 2.2 -->
+      <div class="module-row">
+        <div class="module-main">
+          <div class="module-icon lr">📊</div>
+          <div class="module-body">
+            <div class="module-label">Module 2.2</div>
+            <div class="module-title">Linear Regression — Multiple Features</div>
+            <div class="module-desc">Vector notation wᵀx + b, feature matrix X, feature scaling, learning rate selection, polynomial regression.</div>
+          </div>
+          <a href="Module-2/AI_Module-2_2-Linear_Regression-Multifeature.html" class="module-link">Open ↗</a>
+        </div>
+        <!-- Hands-on 2.2 -->
+        <div class="hands-on">
+          <div class="hands-on-label">Hands-on — Implementation 2</div>
+          <div class="hands-on-items">
+            <a href="Module-2/ex1data2.csv" class="ho-item data" download>
+              <span class="ho-icon">📄</span> ex1data2.csv
+            </a>
+            <a href="implementation-2.html" class="ho-item">
+              <span class="ho-icon">🐍</span> Implementation 2 — Code Walkthrough
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── UNIT 3: LOGISTIC REGRESSION ── -->
+  <div class="unit">
+    <div class="unit-header">
+      <span class="unit-num">Unit 3</span>
+      <div class="unit-info">
+        <div class="unit-title">Logistic Regression</div>
+        <div class="unit-desc">The same machinery as Unit 2, repurposed for classification. One new function — the sigmoid — changes everything about the output.</div>
+      </div>
+      <span class="unit-tag log">Classification</span>
+    </div>
+    <div class="module-list">
+
+      <!-- Module 3 -->
+      <div class="module-row">
+        <div class="module-main">
+          <div class="module-icon log">🎯</div>
+          <div class="module-body">
+            <div class="module-label">Module 3</div>
+            <div class="module-title">Logistic Regression &amp; Classification</div>
+            <div class="module-desc">Sigmoid function, decision boundaries, binary cross-entropy loss, gradient descent — all four loss cases walked through from first principles.</div>
+          </div>
+          <a href="Module-3/AI_Module-3_Logistic_Regression.html" class="module-link">Open ↗</a>
+        </div>
+        <!-- Hands-on 3 -->
+        <div class="hands-on">
+          <div class="hands-on-label">Hands-on — Implementation 3</div>
+          <div class="hands-on-items">
+            <a href="ex2data1.csv" class="ho-item data" download>
+              <span class="ho-icon">📄</span> ex2data1.csv
+            </a>
+            <a href="implementation-3.html" class="ho-item">
+              <span class="ho-icon">🐍</span> Implementation 3 — Code Walkthrough
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── UNIT 4: NEURAL NETWORKS ── -->
+  <div class="unit">
+    <div class="unit-header">
+      <span class="unit-num">Unit 4</span>
+      <div class="unit-info">
+        <div class="unit-title">Neural Networks</div>
+        <div class="unit-desc">Stacking logistic units into layers. The forward pass, and then the algorithm that trains the whole thing: backpropagation.</div>
+      </div>
+      <span class="unit-tag nn">Deep Learning</span>
+    </div>
+    <div class="module-list">
+
+      <!-- Module 4.1 -->
+      <div class="module-row">
+        <div class="module-main">
+          <div class="module-icon nn">🧠</div>
+          <div class="module-body">
+            <div class="module-label">Module 4.1</div>
+            <div class="module-title">Neural Networks — Motivation &amp; Forward Pass</div>
+            <div class="module-desc">Why neural networks, the artificial neuron, layers and architecture, notation, forward pass equation z[l] = W[l]a[l-1]+b[l], vectorisation.</div>
+          </div>
+          <a href="Module-4/module-4.1.html" class="module-link">Open ↗</a>
+        </div>
+        <!-- Hands-on 4.1 -->
+        <div class="hands-on">
+          <div class="hands-on-label">Hands-on — Implementation 4</div>
+          <div class="hands-on-items">
+            <a href="ex3data.csv" class="ho-item data" download>
+              <span class="ho-icon">📄</span> ex3data.csv
+            </a>
+            <a href="implementation-4.html" class="ho-item">
+              <span class="ho-icon">🐍</span> Implementation 4 — Code Walkthrough
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 4.2 -->
+      <div class="module-row">
+        <div class="module-main">
+          <div class="module-icon nn">⚙️</div>
+          <div class="module-body">
+            <div class="module-label">Module 4.2</div>
+            <div class="module-title">Backpropagation &amp; Training</div>
+            <div class="module-desc">The chain rule, computing gradients layer by layer, the full training loop, ReLU and other activation functions.</div>
+          </div>
+          <span class="module-link soon">Coming Soon</span>
+        </div>
+        <div class="hands-on">
+          <div class="hands-on-label">Hands-on</div>
+          <div class="hands-on-items">
+            <span class="ho-item coming-ho"><span class="ho-icon">📄</span> Dataset — coming soon</span>
+            <span class="ho-item coming-ho"><span class="ho-icon">🐍</span> Implementation — coming soon</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── COMING SOON UNITS ── -->
+  <div class="unit" style="opacity:.6;">
+    <div class="unit-header">
+      <span class="unit-num">Units 5–9</span>
+      <div class="unit-info">
+        <div class="unit-title">CNN · RNN · Transformers · LLM Engineering · Agentic AI</div>
+        <div class="unit-desc">Being prepared. Each unit follows the same pattern — lecture notes built from first principles, followed by hands-on implementation.</div>
+      </div>
+    </div>
+    <div class="coming-soon-row">
+      <div class="coming-badge">
+        <div class="coming-dot"></div>
+        <div class="coming-text">
+          <strong>Convolutional Neural Networks (Unit 5)</strong> — filters, pooling, image classification, architecture design.
+        </div>
+      </div>
+      <div class="coming-badge">
+        <div class="coming-dot"></div>
+        <div class="coming-text">
+          <strong>RNNs &amp; LSTMs (Unit 6)</strong> — sequence modelling, vanishing gradients, gated units.
+        </div>
+      </div>
+    </div>
+    <div class="coming-soon-row" style="padding-top:0;">
+      <div class="coming-badge">
+        <div class="coming-dot"></div>
+        <div class="coming-text">
+          <strong>Transformers (Unit 7)</strong> — self-attention, positional encoding, the architecture behind GPT and BERT.
+        </div>
+      </div>
+      <div class="coming-badge">
+        <div class="coming-dot"></div>
+        <div class="coming-text">
+          <strong>LLM Engineering + Agentic AI (Units 8–9)</strong> — prompting, RAG, tool use, autonomous agents.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /modules-section -->
+
+<footer>
+  <div class="footer-logo">AI — A Complete Course</div>
+  <p>Lecture notes follow Andrew Ng's teaching style. Notation is consistent across all modules.</p>
+  <p style="margin-top:8px;">New modules added regularly — check back soon.</p>
+</footer>
+
+</body>
+</html>

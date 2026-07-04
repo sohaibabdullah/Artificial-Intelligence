@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Module1.1 – Artificial Intelligence </title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Source+Sans+3:wght@400;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #faf9f6;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --muted: #555;
+      --accent: #1a4f7a;
+      --accent-light: #e8f0f7;
+      --border: #d5d0c8;
+      --table-head-bg: #1a4f7a;
+      --table-head-fg: #ffffff;
+      --table-alt: #f3f7fb;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Merriweather', Georgia, serif;
+      font-size: 15px;
+      line-height: 1.85;
+    }
+
+    .page-wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 20px;
+      margin-bottom: 36px;
+    }
+    header .course-code {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--text);
+    }
+    header .sub {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Sections ── */
+    section { margin-bottom: 40px; }
+
+    h2 {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      margin-bottom: 14px;
+      margin-top: 36px;
+    }
+
+    h3 {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 20px 0 8px;
+    }
+
+    p { margin-bottom: 14px; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── Ordered / unordered lists ── */
+    ol, ul {
+      padding-left: 24px;
+      margin-bottom: 14px;
+    }
+    li { margin-bottom: 10px; }
+    li strong {
+      color: var(--accent);
+    }
+
+    /* ── Nested bullets (key figures) ── */
+    ul.nested {
+      list-style: disc;
+      margin-top: 6px;
+      margin-bottom: 4px;
+    }
+
+    /* ── Debate spectrum boxes ── */
+    .debate-list { list-style: none; padding: 0; }
+    .debate-list li {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+    }
+    .debate-list li p { margin: 0; }
+
+    /* ── Company bullet list ── */
+    ul.companies {
+      list-style: none;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 8px;
+    }
+    ul.companies li {
+      background: var(--accent-light);
+      border-radius: 4px;
+      padding: 8px 14px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px;
+      margin: 0;
+    }
+    ul.companies li strong { color: var(--accent); }
+
+    /* ── Table ── */
+    .table-scroll { overflow-x: auto; margin-top: 16px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 13.5px;
+    }
+    thead tr { background: var(--table-head-bg); color: var(--table-head-fg); }
+    thead th {
+      padding: 11px 14px;
+      text-align: left;
+      font-weight: 700;
+    }
+    tbody tr:nth-child(even) { background: var(--table-alt); }
+    tbody tr:nth-child(odd) { background: var(--surface); }
+    tbody td {
+      padding: 10px 14px;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td:first-child { font-weight: 600; color: var(--accent); white-space: nowrap; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .page-wrap { padding: 28px 16px 60px; }
+      header h1 { font-size: 1.4rem; }
+      ul.companies { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header>
+    <div class="course-code">Module-1.1 &nbsp;·&nbsp; Artificial Intelligence</div>
+    <h1>Impact of AI in the world</h1>
+    <div class="sub"></div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="revolution">
+    <h2>A Genuine Revolution</h2>
+    <p>A. J. Jacobs is an American journalist, New York Times best selling author, and lecturer, who is best known for writing about his first-person life experiments (once he lived by every rule in the Bible for a year). He once set out to spend 48 hours without interacting with any AI or machine learning (read New York Times article "48 Hours Without A.I.").</p>
+    <p>The experiment collapsed almost immediately. He couldn't wear his clothes, because they're designed using AI and shipped via AI-managed supply chains. He couldn't turn on lights as the energy grid uses machine learning to predict demand. He couldn't use the water, because New York's reservoir system uses machine learning to decide how water is distributed across neighborhoods. He couldn't check the news as AP reports 70% of journalist's organizations use generative AI for research and other purposes. He couldn't check Gmail as it uses AI to filter spam. He couldn't pay for lunch — credit cards use AI for fraud detection, and even cash involves AI in its printing.</p>
+    <p>Some experts said Jacobs AI is "glorified spell check." Others called it bigger than fire, "because fire did not replace humans." By the end, he had moved toward the fire camp — he concluded this is a genuine revolution, not a fad.</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="warfare">
+    <h2>AI in recent warfares</h2>
+    <p>Let's turn our attention from fun experiments to the real deal. When artificial intelligence meets the battlefield, the results are not science fiction — they are happening right now, and the human cost is already devastating.</p>
+    <p>Israel's military deployed three AI systems in Gaza that effectively industrialized killing with minimal human oversight. The <strong>Lavender</strong> system assigned suspicion scores to Gaza's 2.3 million residents and at its peak flagged 37,000 people as targets, with officers spending as little as 20 seconds reviewing each AI-generated name before approving a strike. A companion system, <strong>"Where's Daddy?"</strong>, tracked these targets and was deliberately designed to hit them at home at night with their families. A third tool, <strong>"The Gospel"</strong>, generated lists of civilian infrastructure — universities, apartment blocks, banks — to destroy. The result was numerous death and destruction including entire Palestinian families wiped out in their homes.</p>
+    <p>In the US war on Iran (February–March 2026), the Pentagon leaned heavily on two AI platforms: Palantir's Maven Smart System and Anthropic's Claude. Maven fused radar signals, satellite imagery, drone feeds, and electronic communications into a single targeting interface, allowing commanders to identify, prioritize, and action strikes with a few clicks — enabling 1,000 targets to be hit in the first 24 hours. Claude was used for intelligence assessment and battle scenario simulation. The speed was staggering, but so were the consequences: a US cruise missile destroyed the Shajareh Tayyebeh girls' elementary school in Minab, Iran, killing over 170 people, mostly children. A preliminary US assessment acknowledged the school had been added to an AI-generated target list without adequate human supervision.</p>
+    <p>Both cases expose the same core danger: AI compresses the time available for human judgment to near zero, normalizes high error rates as statistically acceptable, and shifts moral accountability away from identifiable human decision-makers. The tools' speed and scale are treated as military advantages, while the civilian death toll is logged as collateral data.</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="debate">
+    <h2>Debate over future of AI</h2>
+    <p>The debate on AI futures can be understood as a spectrum of perspectives, ranging from skepticism about current AI systems to highly optimistic visions of transformative futures.</p>
+
+    <ol class="debate-list">
+      <li>
+        <h3>1. AI Skeptics (Limits-of-AI perspective)</h3>
+        <p>This group argues that current AI systems are overhyped and fundamentally limited in reasoning, understanding, and general intelligence. They are cautious about claims that scaling alone will lead to human-like intelligence. A key figure is <strong>Gary Marcus</strong>.</p>
+      </li>
+      <li>
+        <h3>2. AI Safety / Risk-focused thinkers</h3>
+        <p>This group believes advanced AI could pose serious long-term risks, especially misalignment and loss of control. They advocate strong safety research, alignment methods, and governance before deploying highly powerful systems.</p>
+        <p>Key figures include <strong>Geoffrey Hinton</strong>, <strong>Yoshua Bengio</strong>, and <strong>Stuart Russell</strong>.</p>
+      </li>
+      <li>
+        <h3>3. AI Pragmatists / Governance-oriented thinkers</h3>
+        <p>This group supports rapid AI progress but emphasizes responsible development, regulation, and alignment rather than extreme caution or unchecked acceleration. They focus on balancing innovation with safety. (This category overlaps with safety researchers and policy thinkers rather than distinct "celebrity figures.")</p>
+      </li>
+      <li>
+        <h3>4. AI Optimists / Accelerationists</h3>
+        <p>This group sees AI as a powerful general-purpose technology that will significantly boost productivity, science, and economic growth. They support fast deployment while managing risks in a practical way.</p>
+        <p>Key figures include <strong>Sam Altman</strong>, <strong>Demis Hassabis</strong>, and <strong>Dario Amodei</strong>.</p>
+      </li>
+      <li>
+        <h3>5. AI Utopian / Post-scarcity visionaries</h3>
+        <p>This group envisions AI leading to abundance, scientific breakthroughs, and potentially a post-work society where human life focuses on meaning, creativity, and relationships.</p>
+        <p>Key thinkers include:</p>
+        <ul class="nested">
+          <li><strong>Nick Bostrom</strong> — explores "deep utopia" and post-scarcity scenarios as philosophical futures, while still acknowledging serious existential risks.</li>
+          <li><strong>Max Tegmark</strong> — describes multiple possible futures of cosmic-scale flourishing in <em>Life 3.0</em>.</li>
+          <li><strong>Marc Andreessen</strong> — emphasizes economic abundance and AI-driven civilizational acceleration.</li>
+        </ul>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="jobs">
+    <h2>Impact of AI in the job market</h2>
+    <p>Recent Axios news shows Meta laid off 8000 of its employees as an AI efficiency push.</p>
+    <p>The rapid advancement of AI is reshaping the global technology industry and labor market. Many major tech companies are restructuring around automation and "AI-first" strategies, with over 90,000–120,000 tech jobs reportedly cut in 2026 alone. At the same time, companies are reducing hiring while heavily increasing investment in AI infrastructure, GPUs, large language models, and automated systems.</p>
+    <p>Some of the notable companies involved include:</p>
+    <ul class="companies">
+      <li><strong>Meta</strong> — reportedly planning around 8,000 job cuts while sharply increasing AI investment.</li>
+      <li><strong>Microsoft</strong> — workforce reductions and buyouts while heavily funding AI infrastructure.</li>
+      <li><strong>Coinbase</strong> — cutting around 14% of staff as it moves toward "AI-native" operations.</li>
+      <li><strong>Cloudflare</strong> — laying off over 1,100 employees to prepare for the "agentic AI era."</li>
+      <li><strong>Freshworks</strong> — reducing about 500 jobs, with claims that over half of code is now AI-generated.</li>
+      <li><strong>Snap</strong> — cutting around 1,000 jobs while increasing AI-generated coding and automation.</li>
+      <li><strong>IBM</strong> — reported plans for thousands of reductions tied to AI transformation.</li>
+    </ul>
+    <p style="margin-top:16px;">The layoffs are mainly affecting routine white-collar and process-oriented jobs such as software engineering, customer support, HR, QA, and administrative work, where AI can significantly increase productivity.</p>
+    <p>Many companies now believe smaller teams can achieve similar output using AI-driven automation, code generation, and workflow optimization. However, the trend is not solely due to AI replacement; it is also driven by cost reduction, post-pandemic restructuring, and investor pressure for AI transformation. At the same time, demand is rapidly growing for AI engineers, robotics and embodied AI researchers, AI infrastructure specialists, and human-AI collaboration experts, making AI-related fields a major focus of global research and investment.</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="impacts">
+    <h2>Positive and negative impact of AI</h2>
+    <p>Artificial Intelligence (AI) is transforming nearly every sector of society, creating both major opportunities and serious challenges. The following table summarizes some of the key positive and negative impacts of AI.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Positive Impacts of AI</th>
+            <th>Negative Impacts of AI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Education &amp; Learning</td>
+            <td>Personalized tutoring, instant explanations, translation, and self-learning can democratize quality education globally, including in Bangladesh.</td>
+            <td>Overdependence on AI may weaken critical thinking, intellectual independence, and traditional learning methods.</td>
+          </tr>
+          <tr>
+            <td>Information &amp; Truth</td>
+            <td>Faster information generation and communication can improve access to knowledge.</td>
+            <td>Deepfakes, fake evidence, and AI-generated propaganda can spread misinformation and blur the line between truth and fabrication.</td>
+          </tr>
+          <tr>
+            <td>Creativity &amp; Culture</td>
+            <td>AI enables individuals and small creators to produce music, art, writing, films, and designs at low cost.</td>
+            <td>Content flooding may reduce the value of creative work and raise concerns about originality and authorship.</td>
+          </tr>
+          <tr>
+            <td>Scientific Discovery</td>
+            <td>AI accelerates research in medicine, astronomy, mathematics, climate science, and materials research through systems like Google DeepMind.</td>
+            <td>Rapid AI-driven scientific advancement may outpace ethical, legal, and regulatory preparedness.</td>
+          </tr>
+          <tr>
+            <td>Military &amp; Geopolitics</td>
+            <td>AI improves intelligence analysis, defense systems, and strategic decision-making.</td>
+            <td>Autonomous weapons, cyberwarfare, and AI-driven military competition among nations like United States, China, and Russia may increase global instability.</td>
+          </tr>
+          <tr>
+            <td>Surveillance &amp; Privacy</td>
+            <td>AI can improve security monitoring and crime detection efficiency.</td>
+            <td>Facial recognition and mass surveillance threaten privacy, civil liberties, and democratic freedoms.</td>
+          </tr>
+          <tr>
+            <td>Human Relationships</td>
+            <td>AI companions may reduce loneliness and provide emotional support.</td>
+            <td>Emotional dependence on machines may weaken human social interaction and blur human-machine boundaries.</td>
+          </tr>
+          <tr>
+            <td>Economic Power</td>
+            <td>AI can increase productivity and create new high-tech industries and research opportunities.</td>
+            <td>AI power may concentrate among large corporations and technologically advanced nations, increasing inequality.</td>
+          </tr>
+          <tr>
+            <td>Language &amp; Culture</td>
+            <td>Localized AI systems can preserve languages like Bangla and improve regional technological independence.</td>
+            <td>Smaller languages and cultures risk marginalization due to dominance of major-language AI systems.</td>
+          </tr>
+          <tr>
+            <td>Human Cognition</td>
+            <td>AI can enhance reasoning, planning, coding, and productivity.</td>
+            <td>Excessive reliance on AI may reduce human cognitive depth, memory, and self-reliance.</td>
+          </tr>
+          <tr>
+            <td>Changing Nature of Expertise</td>
+            <td>Human value may shift toward creativity, ethics, judgment, and interdisciplinary thinking.</td>
+            <td>Traditional expertise based on deep memorization and procedural mastery may lose value.</td>
+          </tr>
+          <tr>
+            <td>Civilizational Transformation</td>
+            <td>AI may transform science, healthcare, education, and governance similarly to electricity or the internet.</td>
+            <td>AI could fundamentally disrupt social structures, governance, warfare, and human identity in unpredictable ways.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

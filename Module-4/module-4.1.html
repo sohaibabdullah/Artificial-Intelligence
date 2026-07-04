@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 4.1 — Neural Networks & Forward Pass</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf9f6;--card:#ffffff;--ink:#1a1814;--ink2:#4a4740;--ink3:#8a8680;
+  --line:#e8e5df;--accent:#c84b2f;--accent2:#2563eb;--accent3:#059669;--accent4:#7c3aed;
+  --yellow:#f59e0b;--code-bg:#f0ede6;
+  --serif:'Lora',Georgia,serif;--sans:'Plus Jakarta Sans',system-ui,sans-serif;
+  --mono:'DM Mono',monospace;--r:12px;--shadow:0 2px 16px rgba(0,0,0,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;font-size:16px;}
+.page{max-width:880px;margin:0 auto;padding:0 24px 80px;}
+
+/* Hero */
+.hero{padding:72px 0 56px;border-bottom:1px solid var(--line);margin-bottom:64px;}
+.hero-tag{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:40px;padding:4px 14px;display:inline-block;margin-bottom:24px;}
+.hero h1{font-family:var(--serif);font-size:clamp(2rem,5vw,3.1rem);font-weight:700;line-height:1.2;margin-bottom:20px;}
+.hero p{font-size:1.05rem;color:var(--ink2);max-width:620px;line-height:1.8;}
+.toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:40px;}
+.toc a{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;text-decoration:none;font-size:13px;font-weight:500;color:var(--ink2);display:flex;align-items:center;gap:8px;transition:border-color .2s,color .2s,transform .15s;}
+.toc a:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px);}
+.toc-num{font-family:var(--mono);font-size:11px;color:var(--ink3);min-width:20px;}
+
+/* Sections */
+.section{margin-bottom:80px;}
+.section-label{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--line);}
+h2{font-family:var(--serif);font-size:clamp(1.5rem,3vw,2rem);font-weight:700;margin-bottom:20px;line-height:1.3;}
+h3{font-family:var(--serif);font-size:1.22rem;font-weight:600;margin:36px 0 12px;color:var(--ink);}
+p{color:var(--ink2);margin-bottom:16px;line-height:1.8;}
+p:last-child{margin-bottom:0;}
+strong{color:var(--ink);font-weight:600;}
+ul,ol{color:var(--ink2);padding-left:24px;margin-bottom:16px;}
+li{margin-bottom:8px;}
+
+/* Callouts */
+.callout{border-left:3px solid var(--accent);background:#fef6f4;border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:24px 0;}
+.callout.blue{border-color:var(--accent2);background:#eff6ff;}
+.callout.green{border-color:var(--accent3);background:#ecfdf5;}
+.callout.purple{border-color:var(--accent4);background:#f5f3ff;}
+.callout.yellow{border-color:var(--yellow);background:#fffbeb;}
+.callout-title{font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;color:var(--accent);}
+.callout.blue .callout-title{color:var(--accent2);}
+.callout.green .callout-title{color:var(--accent3);}
+.callout.purple .callout-title{color:var(--accent4);}
+.callout.yellow .callout-title{color:#92400e;}
+.callout p{color:var(--ink);margin-bottom:0;font-size:15px;}
+
+/* Equations */
+.eq-block{background:var(--code-bg);border-radius:var(--r);padding:18px 26px;margin:20px 0;font-family:var(--mono);text-align:center;border:1px solid var(--line);overflow-x:auto;}
+.eq-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);display:block;margin-bottom:8px;font-family:var(--sans);}
+.eq-main{font-size:1.18rem;color:var(--ink);font-weight:500;line-height:2.1;}
+.eq-note{font-size:12px;color:var(--ink3);margin-top:10px;font-family:var(--sans);line-height:1.6;}
+
+/* Var table */
+.var-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+.var-table th{background:var(--code-bg);padding:10px 14px;text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);border-bottom:1px solid var(--line);}
+.var-table td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top;line-height:1.6;}
+.var-table td:first-child{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500;}
+.var-table tr:last-child td{border-bottom:none;}
+
+/* Diagram card */
+.diagram-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;margin:28px 0;box-shadow:var(--shadow);overflow:hidden;}
+.diagram-card figcaption{font-size:13px;color:var(--ink3);text-align:center;margin-top:14px;font-style:italic;line-height:1.6;}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:0;margin:28px 0;}
+.step{display:flex;gap:20px;position:relative;padding-bottom:32px;}
+.step:last-child{padding-bottom:0;}
+.step-line{display:flex;flex-direction:column;align-items:center;}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--accent);color:white;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);}
+.step-num.blue{background:var(--accent2);}
+.step-num.green{background:var(--accent3);}
+.step-num.purple{background:var(--accent4);}
+.step-connector{width:2px;flex:1;background:var(--line);margin-top:8px;}
+.step:last-child .step-connector{display:none;}
+.step-body{padding-top:4px;flex:1;}
+.step-body h4{font-weight:700;font-size:1rem;margin-bottom:8px;color:var(--ink);}
+.step-body p{font-size:15px;color:var(--ink2);margin-bottom:8px;}
+
+/* Summary grid */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;margin:24px 0;}
+.summary-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:8px;}
+.summary-card .s-icon{font-size:22px;}
+.summary-card .s-title{font-weight:700;font-size:14px;color:var(--ink);}
+.summary-card .s-desc{font-size:13px;color:var(--ink2);line-height:1.6;}
+
+/* Sub-eq grid */
+.sub-eqs{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;}
+.sub-eq{flex:1;min-width:180px;background:var(--code-bg);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px;text-align:center;font-family:var(--mono);font-size:.98rem;line-height:1.9;}
+.sub-eq .var-name{font-size:11px;color:var(--ink3);font-family:var(--sans);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;}
+
+footer{border-top:1px solid var(--line);padding:32px 0;text-align:center;color:var(--ink3);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── HERO ── -->
+<header class="hero">
+  <div class="hero-tag">Module 4.1 · Neural Networks</div>
+  <h1>Neural Networks<br>— Motivation &amp; Forward Pass</h1>
+  <p>We have so far used logistic regression (Module 3) to classify. But what if the data is far too complex for any hand-crafted combination of features to separate? Neural networks learn their own features automatically — and they do it by stacking the very same building block we already know: the logistic unit.</p>
+  <nav class="toc">
+    <a href="#s1"><span class="toc-num">01</span> Why Neural Networks?</a>
+    <a href="#s2"><span class="toc-num">02</span> The Neuron</a>
+    <a href="#s3"><span class="toc-num">03</span> Layers &amp; Architecture</a>
+    <a href="#s4"><span class="toc-num">04</span> Notation</a>
+    <a href="#s5"><span class="toc-num">05</span> Forward Pass — One Layer</a>
+    <a href="#s6"><span class="toc-num">06</span> Forward Pass — Full Network</a>
+    <a href="#s7"><span class="toc-num">07</span> Vectorised Forward Pass</a>
+    <a href="#s8"><span class="toc-num">08</span> Summary</a>
+  </nav>
+</header>
+
+
+<!-- ══ SECTION 1: WHY NEURAL NETWORKS ══ -->
+<section class="section" id="s1">
+  <div class="section-label">Section 01</div>
+  <h2>Why Do We Need Neural Networks?</h2>
+
+  <p>In Module 2.1 we added polynomial features like x₁², x₁x₂, x₂² to linear regression to handle curves. In Module 3 we used the same trick for logistic regression to get non-linear decision boundaries. This works well for small problems. But it breaks down quickly.</p>
+
+  <h3>The Feature Explosion Problem</h3>
+  <p>Suppose you are building a classifier to detect whether an image contains a car. A modest image has 50×50 pixels = 2,500 pixels. If you include all quadratic feature pairs (x₁x₂, x₁x₃, …), you end up with roughly <strong>3,000,000 features</strong>. This is computationally impossible to train and extremely prone to overfitting.</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 820 230" role="img">
+      <title>Diagram comparing simple classification with two features versus a complex image classification problem needing millions of features</title>
+      <defs>
+        <marker id="nn-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- LEFT: simple 2-feature case -->
+      <text x="170" y="22" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#059669">Module 3 approach — works well</text>
+      <text x="170" y="40" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">n = 2 features → add x₁², x₂², x₁x₂ → manageable</text>
+      <!-- Axes -->
+      <line x1="40" y1="200" x2="310" y2="200" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#nn-arr)"/>
+      <line x1="40" y1="200" x2="40" y2="55" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#nn-arr)"/>
+      <!-- Circular decision boundary -->
+      <ellipse cx="170" cy="135" rx="80" ry="60" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 3"/>
+      <!-- Points -->
+      <circle cx="130" cy="110" r="5" fill="#c84b2f"/><circle cx="160" cy="95" r="5" fill="#c84b2f"/>
+      <circle cx="200" cy="115" r="5" fill="#c84b2f"/><circle cx="175" cy="140" r="5" fill="#c84b2f"/>
+      <circle cx="60" cy="70" r="5" fill="#2563eb"/><circle cx="280" cy="80" r="5" fill="#2563eb"/>
+      <circle cx="60" cy="190" r="5" fill="#2563eb"/><circle cx="280" cy="185" r="5" fill="#2563eb"/>
+      <circle cx="80" cy="140" r="5" fill="#2563eb"/><circle cx="255" cy="150" r="5" fill="#2563eb"/>
+      <text x="170" y="218" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">Few features → polynomial trick ✓</text>
+
+      <!-- Divider -->
+      <line x1="360" y1="30" x2="360" y2="215" stroke="#e8e5df" stroke-width="1"/>
+
+      <!-- RIGHT: image problem -->
+      <text x="590" y="22" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#c84b2f">Image classification — breaks down</text>
+      <text x="590" y="40" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">50×50 image → 2,500 pixels → ~3M quadratic features</text>
+
+      <!-- Grid representing pixels -->
+      <rect x="385" y="55" width="120" height="120" fill="#f0ede6" stroke="#c8c5bf" stroke-width="1" rx="4"/>
+      <!-- pixel grid lines -->
+      <line x1="385" y1="79" x2="505" y2="79" stroke="#c8c5bf" stroke-width="0.5"/>
+      <line x1="385" y1="103" x2="505" y2="103" stroke="#c8c5bf" stroke-width="0.5"/>
+      <line x1="385" y1="127" x2="505" y2="127" stroke="#c8c5bf" stroke-width="0.5"/>
+      <line x1="385" y1="151" x2="505" y2="151" stroke="#c8c5bf" stroke-width="0.5"/>
+      <line x1="409" y1="55" x2="409" y2="175" stroke="#c8c5bf" stroke-width="0.5"/>
+      <line x1="433" y1="55" x2="433" y2="175" stroke="#c8c5bf" stroke-width="0.5"/>
+      <line x1="457" y1="55" x2="457" y2="175" stroke="#c8c5bf" stroke-width="0.5"/>
+      <line x1="481" y1="55" x2="481" y2="175" stroke="#c8c5bf" stroke-width="0.5"/>
+      <text x="445" y="200" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">50×50 image</text>
+      <text x="445" y="215" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#8a8680">2,500 pixels</text>
+
+      <line x1="508" y1="115" x2="540" y2="115" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#nn-arr)"/>
+      <text x="545" y="100" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f" font-weight="600">add all</text>
+      <text x="545" y="116" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f" font-weight="600">quadratic</text>
+      <text x="545" y="132" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f" font-weight="600">pairs</text>
+
+      <line x1="650" y1="115" x2="680" y2="115" stroke="#c8c5bf" stroke-width="1.5" marker-end="url(#nn-arr)"/>
+      <rect x="682" y="78" width="118" height="74" rx="8" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="741" y="104" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#c84b2f" font-weight="600">~3,000,000</text>
+      <text x="741" y="122" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#c84b2f">features!</text>
+      <text x="741" y="140" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">computationally</text>
+      <text x="590" y="218" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">Hand-crafting features is impossible ✗</text>
+    </svg>
+    <figcaption>Figure 1 — The polynomial feature trick from Module 2.1 and Module 3 works beautifully for small n. For real-world problems like image classification, it completely breaks down. We need a better approach.</figcaption>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">🔑 The Neural Network Insight</div>
+    <p>Instead of <em>we</em> manually engineering features, what if the algorithm could <strong>learn its own features automatically</strong> from raw data? That is exactly what a neural network does. It learns a hierarchy of increasingly abstract features — layer by layer — without us having to specify them. And it does this by stacking the same basic building block we already know from Module 3: the <strong>logistic unit</strong>.</p>
+  </div>
+
+  <h3>A Bridge From What You Already Know</h3>
+  <p>Remember Module 3's logistic regression model: take inputs x, compute z = wᵀx + b, then apply the sigmoid to get ŷ = g(z). A neural network is simply <strong>many of these logistic units</strong> connected together in layers. The output of one layer becomes the input to the next. That's it — the concept is an elegant extension of what you already understand.</p>
+</section>
+
+<!-- ══ SECTION 2: THE NEURON ══ -->
+<section class="section" id="s2">
+  <div class="section-label">Section 02</div>
+  <h2>The Artificial Neuron — The Atom of a Neural Network</h2>
+
+  <p>Before building a full network, let's understand the single unit that everything is built from. We can call it a <strong>neuron</strong> or a <strong>unit</strong>. It is a direct extension of logistic regression.</p>
+
+  <h3>Biological Inspiration (Brief)</h3>
+  <p>A biological neuron receives signals through dendrites, combines them in the cell body, and fires an output through the axon if the combined signal is strong enough. The artificial neuron is a loose mathematical analogy: it receives several numbers as inputs, takes a weighted sum, adds a bias, and passes the result through an activation function to produce one output number.</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 820 280" role="img">
+      <title>Diagram of a single artificial neuron: inputs x1 x2 x3 flow in with weights, the neuron computes z = wTx + b then applies sigmoid to get output a</title>
+      <defs>
+        <marker id="nn-a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Input labels -->
+      <text x="50" y="92" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#2563eb" font-weight="500">x₁</text>
+      <text x="50" y="148" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#2563eb" font-weight="500">x₂</text>
+      <text x="50" y="204" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#2563eb" font-weight="500">x₃</text>
+
+      <!-- Wires from inputs to neuron -->
+      <line x1="64" y1="88"  x2="262" y2="135" stroke="#2563eb" stroke-width="1.8" opacity="0.6" marker-end="url(#nn-a2)"/>
+      <line x1="64" y1="148" x2="262" y2="148" stroke="#2563eb" stroke-width="1.8" opacity="0.6" marker-end="url(#nn-a2)"/>
+      <line x1="64" y1="200" x2="262" y2="162" stroke="#2563eb" stroke-width="1.8" opacity="0.6" marker-end="url(#nn-a2)"/>
+
+      <!-- Weight labels on wires -->
+      <text x="130" y="108" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">w₁</text>
+      <text x="130" y="143" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">w₂</text>
+      <text x="130" y="190" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">w₃</text>
+
+      <!-- Neuron circle -->
+      <circle cx="310" cy="148" r="52" fill="#fef6f4" stroke="#c84b2f" stroke-width="2"/>
+      <!-- Inside neuron: two steps -->
+      <text x="310" y="135" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">z=wᵀx+b</text>
+      <line x1="272" y1="145" x2="348" y2="145" stroke="#e8e5df" stroke-width="1"/>
+      <text x="310" y="162" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">a=g(z)</text>
+
+      <!-- Bias -->
+      <text x="310" y="226" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#7c3aed">+b</text>
+      <line x1="310" y1="218" x2="310" y2="202" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#nn-a2)"/>
+
+      <!-- Output wire -->
+      <line x1="362" y1="148" x2="480" y2="148" stroke="#059669" stroke-width="2" marker-end="url(#nn-a2)"/>
+      <text x="530" y="148" text-anchor="middle" font-family="DM Mono,monospace" font-size="18" fill="#059669" font-weight="600">a</text>
+      <text x="530" y="168" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">(activation)</text>
+
+      <!-- Step annotation boxes -->
+      <rect x="560" y="78" width="240" height="64" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1"/>
+      <text x="680" y="98" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">Step 1 — Linear combination</text>
+      <text x="680" y="116" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#1d4ed8">z = w₁x₁ + w₂x₂ + w₃x₃ + b</text>
+      <text x="680" y="132" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#1d4ed8">= wᵀx + b</text>
+
+      <rect x="560" y="154" width="240" height="56" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+      <text x="680" y="174" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#065f46">Step 2 — Activation</text>
+      <text x="680" y="192" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#065f46">a = g(z) = 1 / (1 + e⁻ᶻ)</text>
+
+      <!-- Connection lines from annotation to neuron -->
+      <line x1="558" y1="110" x2="352" y2="138" stroke="#2563eb" stroke-width="1" stroke-dasharray="4 3" opacity="0.5"/>
+      <line x1="558" y1="180" x2="352" y2="158" stroke="#059669" stroke-width="1" stroke-dasharray="4 3" opacity="0.5"/>
+    </svg>
+    <figcaption>Figure 2 — A single artificial neuron. Three inputs x₁, x₂, x₃ each have their own weight. Step 1 computes the weighted sum z = wᵀx + b. Step 2 applies the sigmoid activation g(z) to produce the output a (called the activation). This is identical to one logistic regression unit from Module 3.</figcaption>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">✅ Connection to Module 3</div>
+    <p>In Module 3, the output of logistic regression was ŷ = g(wᵀx + b). A single neuron is exactly this — but we now call the output <strong>a</strong> instead of ŷ. We use <strong>a</strong> (short for <em>activation</em>) because in a network this output immediately becomes the input to the next layer — it is not yet the final prediction. The notation change reflects this role: <strong>a</strong> is an intermediate activation, ŷ is reserved for the final network output.</p>
+  </div>
+
+  <h3>The Activation Function</h3>
+  <p>The sigmoid g(z) = 1/(1+e⁻ᶻ) is one choice of <strong>activation function</strong>. Its job is to introduce non-linearity. Without an activation function, stacking many linear layers would still just give a single linear transformation — we'd gain nothing. The activation function is what gives neural networks their power to represent complex, non-linear patterns.</p>
+
+  <p>In this module we use the sigmoid (consistent with Module 3). Module 4.2 will introduce other popular choices like ReLU.</p>
+</section>
+
+<!-- ══ SECTION 3: LAYERS & ARCHITECTURE ══ -->
+<section class="section" id="s3">
+  <div class="section-label">Section 03</div>
+  <h2>Layers &amp; Architecture — Stacking Neurons</h2>
+
+  <p>One neuron gives us logistic regression. The power of neural networks comes from organising many neurons into <strong>layers</strong> and stacking those layers one after another. Let's build this up gradually.</p>
+
+  <h3>A Network with One Hidden Layer</h3>
+  <p>The simplest useful neural network has three groups of neurons: an <strong>input layer</strong>, one <strong>hidden layer</strong>, and an <strong>output layer</strong>. Let's see what each one does and why.</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 820 380" role="img">
+      <title>Neural network diagram with 3 input features, 4 neurons in hidden layer 1, and 1 output neuron</title>
+      <defs>
+        <marker id="nn-a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Layer labels -->
+      <text x="80" y="28" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#8a8680">Input Layer</text>
+      <text x="80" y="44" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">"Layer 0"</text>
+      <text x="380" y="28" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#c84b2f">Hidden Layer</text>
+      <text x="380" y="44" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">Layer 1</text>
+      <text x="660" y="28" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#059669">Output Layer</text>
+      <text x="660" y="44" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">Layer 2</text>
+
+      <!-- INPUT NODES -->
+      <circle cx="80" cy="130" r="22" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="80" y="135" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#1d4ed8">x₁</text>
+      <circle cx="80" cy="210" r="22" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="80" y="215" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#1d4ed8">x₂</text>
+      <circle cx="80" cy="290" r="22" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="80" y="295" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#1d4ed8">x₃</text>
+
+      <!-- Connections: input → hidden layer (all pairs, subtle) -->
+      <!-- to neuron 1 (cy=100) -->
+      <line x1="101" y1="123" x2="332" y2="102" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <line x1="101" y1="207" x2="332" y2="106" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <line x1="101" y1="285" x2="332" y2="110" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <!-- to neuron 2 (cy=180) -->
+      <line x1="101" y1="126" x2="332" y2="177" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <line x1="101" y1="210" x2="332" y2="180" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <line x1="101" y1="286" x2="332" y2="183" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <!-- to neuron 3 (cy=260) -->
+      <line x1="101" y1="127" x2="332" y2="256" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <line x1="101" y1="212" x2="332" y2="260" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <line x1="101" y1="288" x2="332" y2="264" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <!-- to neuron 4 (cy=340) -->
+      <line x1="101" y1="128" x2="332" y2="336" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <line x1="101" y1="213" x2="332" y2="340" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+      <line x1="101" y1="289" x2="332" y2="344" stroke="#c8c5bf" stroke-width="1" opacity="0.7"/>
+
+      <!-- HIDDEN LAYER NEURONS -->
+      <circle cx="380" cy="100" r="30" fill="#fef6f4" stroke="#c84b2f" stroke-width="2"/>
+      <text x="380" y="96" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#c84b2f">a₁⁽¹⁾</text>
+      <text x="380" y="112" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="9" fill="#8a8680">unit 1</text>
+
+      <circle cx="380" cy="180" r="30" fill="#fef6f4" stroke="#c84b2f" stroke-width="2"/>
+      <text x="380" y="176" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#c84b2f">a₂⁽¹⁾</text>
+      <text x="380" y="192" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="9" fill="#8a8680">unit 2</text>
+
+      <circle cx="380" cy="260" r="30" fill="#fef6f4" stroke="#c84b2f" stroke-width="2"/>
+      <text x="380" y="256" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#c84b2f">a₃⁽¹⁾</text>
+      <text x="380" y="272" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="9" fill="#8a8680">unit 3</text>
+
+      <circle cx="380" cy="340" r="30" fill="#fef6f4" stroke="#c84b2f" stroke-width="2"/>
+      <text x="380" y="336" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#c84b2f">a₄⁽¹⁾</text>
+      <text x="380" y="352" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="9" fill="#8a8680">unit 4</text>
+
+      <!-- Connections: hidden → output -->
+      <line x1="410" y1="104" x2="626" y2="218" stroke="#c8c5bf" stroke-width="1.2" opacity="0.8"/>
+      <line x1="410" y1="182" x2="626" y2="220" stroke="#c8c5bf" stroke-width="1.2" opacity="0.8"/>
+      <line x1="410" y1="262" x2="626" y2="222" stroke="#c8c5bf" stroke-width="1.2" opacity="0.8"/>
+      <line x1="410" y1="342" x2="626" y2="224" stroke="#c8c5bf" stroke-width="1.2" opacity="0.8"/>
+
+      <!-- OUTPUT NEURON -->
+      <circle cx="660" cy="220" r="34" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+      <text x="660" y="216" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₁⁽²⁾</text>
+      <text x="660" y="232" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">= ŷ</text>
+
+      <!-- Output arrow -->
+      <line x1="694" y1="220" x2="760" y2="220" stroke="#059669" stroke-width="2" marker-end="url(#nn-a3)"/>
+      <text x="775" y="216" font-family="DM Mono,monospace" font-size="13" fill="#059669" font-weight="600">ŷ</text>
+
+      <!-- x input arrow labels -->
+      <text x="30" y="135" text-anchor="end" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">feature 1</text>
+      <text x="30" y="215" text-anchor="end" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">feature 2</text>
+      <text x="30" y="295" text-anchor="end" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">feature 3</text>
+
+      <!-- Brace / size labels -->
+      <text x="380" y="375" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">4 units (hyperparameter)</text>
+    </svg>
+    <figcaption>Figure 3 — A neural network with 3 inputs, 1 hidden layer of 4 neurons, and 1 output neuron. Every input connects to every hidden neuron, and every hidden neuron connects to the output. The hidden layer learns intermediate representations that the output layer uses to make the final prediction ŷ.</figcaption>
+  </div>
+
+  <h3>What Does Each Layer Do?</h3>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">0</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Input Layer (Layer 0)</h4>
+        <p>This is simply the raw input features x₁, x₂, …, xₙ from the training data. It does no computation — it just passes values in. By convention this is called layer 0 and is <strong>not counted</strong> when we say a network has "L layers".</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num">1</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Hidden Layer (Layer 1, 2, …, L−1)</h4>
+        <p>The neurons here are called "hidden" because we don't observe their values in the training data — we only observe x (input) and y (output). The hidden layer <strong>learns intermediate features</strong> automatically. For example, in an image network an early hidden layer might learn to detect edges; a later hidden layer might learn to combine edges into shapes. We never specify this — the network learns it.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num green">2</div></div>
+      <div class="step-body">
+        <h4>Output Layer (Layer L)</h4>
+        <p>The final layer produces the network's prediction ŷ. For binary classification (like Module 3), the output layer has a single neuron with sigmoid activation, giving ŷ ∈ (0,1) — the probability that y=1. For multi-class problems we use more output neurons (covered later).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout yellow">
+    <div class="callout-title">⚠️ Why is the middle layer called "hidden"?</div>
+    <p>Because we never see its values in the dataset. The dataset only contains the input features x and the true label y. What the hidden neurons compute is entirely internal to the network — hence "hidden". This is different from a missing feature; it's a feature the network invents for itself during training.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 4: NOTATION ══ -->
+<section class="section" id="s4">
+  <div class="section-label">Section 04</div>
+  <h2>Notation — Reading Neural Network Equations</h2>
+
+  <p>We will use a superscript-in-square-bracket notation for neural networks. It looks intimidating at first, but it is logical once you know the pattern. Every symbol has at most two indices, each with a clear meaning.</p>
+
+  <div class="callout blue">
+    <div class="callout-title">📌 The Two Index Convention</div>
+    <p>Superscript <strong>[l]</strong> in square brackets always means <em>layer number</em>. Subscript <strong>j</strong> (or i) always means <em>unit number within that layer</em>. That's it.</p>
+  </div>
+
+  <table class="var-table">
+    <thead><tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>L</td><td>Total number of layers in the network (not counting the input layer)</td><td>L=2 in Figure 3</td></tr>
+      <tr><td>n<sup>[l]</sup></td><td>Number of units (neurons) in layer l</td><td>n<sup>[1]</sup>=4, n<sup>[2]</sup>=1 in Figure 3</td></tr>
+      <tr><td>a<sub>j</sub><sup>[l]</sup></td><td>Activation of unit j in layer l — the output of that neuron</td><td>a₂<sup>[1]</sup> is unit 2 of hidden layer 1</td></tr>
+      <tr><td><strong>a</strong><sup>[l]</sup></td><td>Vector of all activations in layer l — shape (n<sup>[l]</sup> × 1)</td><td><strong>a</strong><sup>[1]</sup> = [a₁<sup>[1]</sup>, a₂<sup>[1]</sup>, a₃<sup>[1]</sup>, a₄<sup>[1]</sup>]ᵀ</td></tr>
+      <tr><td>W<sup>[l]</sup></td><td>Weight matrix for layer l — shape (n<sup>[l]</sup> × n<sup>[l-1]</sup>)</td><td>W<sup>[1]</sup> has shape (4×3) in Figure 3</td></tr>
+      <tr><td>b<sup>[l]</sup></td><td>Bias vector for layer l — shape (n<sup>[l]</sup> × 1)</td><td>b<sup>[1]</sup> = [b₁<sup>[1]</sup>, b₂<sup>[1]</sup>, b₃<sup>[1]</sup>, b₄<sup>[1]</sup>]ᵀ</td></tr>
+      <tr><td>z<sub>j</sub><sup>[l]</sup></td><td>Pre-activation linear combination in unit j of layer l</td><td>z₂<sup>[1]</sup> = W₂<sup>[1]</sup>·<strong>a</strong><sup>[0]</sup> + b₂<sup>[1]</sup></td></tr>
+      <tr><td><strong>a</strong><sup>[0]</sup></td><td>Input layer — same as x. The input is "layer 0's activation"</td><td><strong>a</strong><sup>[0]</sup> = x = [x₁, x₂, x₃]ᵀ</td></tr>
+      <tr><td>ŷ</td><td>Final output — same as <strong>a</strong><sup>[L]</sup>, the activation of the last layer</td><td>ŷ = a₁<sup>[2]</sup> in Figure 3</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout purple">
+    <div class="callout-title">🔑 Key Link to Module 3 Notation</div>
+    <p>In Module 3, a single logistic unit had one weight vector w and one bias b. In a neural network, each layer has a <strong>weight matrix W<sup>[l]</sup></strong> (one row per neuron in that layer) and a <strong>bias vector b<sup>[l]</sup></strong>. The parameters of the whole network are {W<sup>[1]</sup>, b<sup>[1]</sup>, W<sup>[2]</sup>, b<sup>[2]</sup>, …, W<sup>[L]</sup>, b<sup>[L]</sup>}. Everything else — the sigmoid, the cost function, gradient descent — follows the same principles as Module 3.</p>
+  </div>
+
+  <h3>Concretely For Figure 3</h3>
+  <p>Let's make the notation concrete for our 3-input, 4-hidden, 1-output network:</p>
+
+  <div class="sub-eqs">
+    <div class="sub-eq">
+      <span class="var-name">Input (layer 0)</span>
+      <strong>a</strong><sup>[0]</sup> = <strong>x</strong> ∈ ℝ<sup>3×1</sup>
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">Layer 1 weights</span>
+      W<sup>[1]</sup> ∈ ℝ<sup>4×3</sup>
+      <br><small style="color:var(--ink3);font-size:11px;font-family:var(--sans);">4 neurons, each with 3 weights</small>
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">Layer 1 biases</span>
+      b<sup>[1]</sup> ∈ ℝ<sup>4×1</sup>
+      <br><small style="color:var(--ink3);font-size:11px;font-family:var(--sans);">one bias per neuron</small>
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">Layer 1 activations</span>
+      <strong>a</strong><sup>[1]</sup> ∈ ℝ<sup>4×1</sup>
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">Layer 2 weights</span>
+      W<sup>[2]</sup> ∈ ℝ<sup>1×4</sup>
+      <br><small style="color:var(--ink3);font-size:11px;font-family:var(--sans);">1 neuron with 4 incoming weights</small>
+    </div>
+    <div class="sub-eq">
+      <span class="var-name">Output</span>
+      ŷ = <strong>a</strong><sup>[2]</sup> ∈ ℝ<sup>1×1</sup>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SECTION 5: FORWARD PASS ONE LAYER ══ -->
+<section class="section" id="s5">
+  <div class="section-label">Section 05</div>
+  <h2>Forward Pass — Computing One Layer at a Time</h2>
+
+  <p>The <strong>forward pass</strong> is the process of computing the network's output ŷ from a given input x. It works by moving from left to right through the network — layer by layer — computing each layer's activations from the previous layer's activations. Let's trace through one layer first, step by step.</p>
+
+  <h3>Computing One Neuron in the Hidden Layer</h3>
+  <p>Take unit 1 of layer 1 (the top hidden neuron in Figure 3). It receives x₁, x₂, x₃ as input, has its own weights w₁<sup>[1]</sup>, w₂<sup>[1]</sup>, w₃<sup>[1]</sup> and bias b₁<sup>[1]</sup>. It computes in two steps:</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">1</div><div class="step-connector"></div></div>
+      <div class="step-body">
+        <h4>Linear combination — exactly like Module 3</h4>
+        <p>Compute the weighted sum of inputs and add the bias:</p>
+        <div class="eq-block" style="text-align:left;padding:14px 20px;">
+          <div class="eq-main" style="font-size:1rem;">z₁<sup>[1]</sup> = w₁₁<sup>[1]</sup>·x₁ + w₁₂<sup>[1]</sup>·x₂ + w₁₃<sup>[1]</sup>·x₃ + b₁<sup>[1]</sup></div>
+          <div class="eq-note" style="margin-top:6px;">where w₁ⱼ<sup>[1]</sup> means: weight from input j to unit 1 of layer 1</div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-line"><div class="step-num blue">2</div></div>
+      <div class="step-body">
+        <h4>Apply activation function — again same as Module 3</h4>
+        <p>Pass z through the sigmoid to get this neuron's output activation:</p>
+        <div class="eq-block" style="text-align:left;padding:14px 20px;">
+          <div class="eq-main" style="font-size:1rem;">a₁<sup>[1]</sup> = g(z₁<sup>[1]</sup>) = 1 / (1 + e<sup>−z₁<sup>[1]</sup></sup>)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p>Now repeat the exact same two steps for units 2, 3, 4 — each has its own weights and bias, but the computation structure is identical:</p>
+
+  <div class="diagram-card" style="padding:20px 24px;">
+    <svg width="100%" viewBox="0 0 820 340" role="img">
+      <title>Four neurons in hidden layer 1, each computing z and a from the same inputs x1 x2 x3 with different weights</title>
+      <defs>
+        <marker id="nn-a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Input column -->
+      <text x="52" y="22" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#8a8680">Inputs</text>
+      <circle cx="52" cy="85" r="18" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="52" y="89" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#1d4ed8">x₁</text>
+      <circle cx="52" cy="175" r="18" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="52" y="179" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#1d4ed8">x₂</text>
+      <circle cx="52" cy="265" r="18" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="52" y="269" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="#1d4ed8">x₃</text>
+
+      <!-- Neuron rows: for each of 4 neurons -->
+      <!-- Neuron 1 row -->
+      <line x1="70" y1="81"  x2="200" y2="65"  stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <line x1="70" y1="170" x2="200" y2="67"  stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <line x1="70" y1="260" x2="200" y2="69"  stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <rect x="200" y="44" width="340" height="44" rx="8" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="370" y="62" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">z₁⁽¹⁾ = w₁₁x₁ + w₁₂x₂ + w₁₃x₃ + b₁</text>
+      <text x="370" y="79" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₁⁽¹⁾ = g(z₁⁽¹⁾)</text>
+      <line x1="540" y1="66" x2="600" y2="66" stroke="#059669" stroke-width="1.5" marker-end="url(#nn-a4)"/>
+      <text x="620" y="70" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₁⁽¹⁾</text>
+
+      <!-- Neuron 2 row -->
+      <line x1="70" y1="83"  x2="200" y2="143" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <line x1="70" y1="173" x2="200" y2="145" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <line x1="70" y1="263" x2="200" y2="147" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <rect x="200" y="124" width="340" height="44" rx="8" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="370" y="142" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">z₂⁽¹⁾ = w₂₁x₁ + w₂₂x₂ + w₂₃x₃ + b₂</text>
+      <text x="370" y="158" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₂⁽¹⁾ = g(z₂⁽¹⁾)</text>
+      <line x1="540" y1="146" x2="600" y2="146" stroke="#059669" stroke-width="1.5" marker-end="url(#nn-a4)"/>
+      <text x="620" y="150" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₂⁽¹⁾</text>
+
+      <!-- Neuron 3 row -->
+      <line x1="70" y1="85"  x2="200" y2="223" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <line x1="70" y1="175" x2="200" y2="225" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <line x1="70" y1="265" x2="200" y2="227" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <rect x="200" y="204" width="340" height="44" rx="8" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="370" y="222" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">z₃⁽¹⁾ = w₃₁x₁ + w₃₂x₂ + w₃₃x₃ + b₃</text>
+      <text x="370" y="238" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₃⁽¹⁾ = g(z₃⁽¹⁾)</text>
+      <line x1="540" y1="226" x2="600" y2="226" stroke="#059669" stroke-width="1.5" marker-end="url(#nn-a4)"/>
+      <text x="620" y="230" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₃⁽¹⁾</text>
+
+      <!-- Neuron 4 row -->
+      <line x1="70" y1="87"  x2="200" y2="303" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <line x1="70" y1="177" x2="200" y2="305" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <line x1="70" y1="267" x2="200" y2="307" stroke="#c8c5bf" stroke-width="1" opacity="0.8"/>
+      <rect x="200" y="284" width="340" height="44" rx="8" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="370" y="302" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#c84b2f">z₄⁽¹⁾ = w₄₁x₁ + w₄₂x₂ + w₄₃x₃ + b₄</text>
+      <text x="370" y="318" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₄⁽¹⁾ = g(z₄⁽¹⁾)</text>
+      <line x1="540" y1="306" x2="600" y2="306" stroke="#059669" stroke-width="1.5" marker-end="url(#nn-a4)"/>
+      <text x="620" y="310" font-family="DM Mono,monospace" font-size="12" fill="#059669">a₄⁽¹⁾</text>
+    </svg>
+    <figcaption>Figure 4 — All 4 hidden neurons compute the same two-step process (z then a = g(z)) but with their own independent weights. Every neuron sees all three inputs. The 4 output activations a₁⁽¹⁾…a₄⁽¹⁾ together form the vector <strong>a</strong><sup>[1]</sup> that feeds into layer 2.</figcaption>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">💡 Each Neuron Learns a Different Feature</div>
+    <p>Even though all four neurons receive the same inputs x₁, x₂, x₃, they have <strong>different weights</strong>. So each neuron learns to detect a different pattern in the input. Neuron 1 might learn "is feature 1 large?", neuron 2 might learn "is feature 1 small but feature 2 large?", and so on. The network discovers which combinations matter — you don't have to tell it.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 6: FORWARD PASS FULL NETWORK ══ -->
+<section class="section" id="s6">
+  <div class="section-label">Section 06</div>
+  <h2>Forward Pass — Through the Full Network</h2>
+
+  <p>We've seen how layer 1 computes its activations from the inputs. Now let's trace the full forward pass: from x all the way to ŷ, passing through every layer.</p>
+
+  <h3>Layer 2 — The Output Layer</h3>
+  <p>The output layer (layer 2 in Figure 3) has just one neuron. Its input is not x — it's the 4-dimensional activation vector <strong>a</strong><sup>[1]</sup> from layer 1. The computation is the same two-step process:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Output layer computation</span>
+    <div class="eq-main" style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+      <span>z₁<sup>[2]</sup> = w₁₁<sup>[2]</sup>·a₁<sup>[1]</sup> + w₁₂<sup>[2]</sup>·a₂<sup>[1]</sup> + w₁₃<sup>[2]</sup>·a₃<sup>[1]</sup> + w₁₄<sup>[2]</sup>·a₄<sup>[1]</sup> + b₁<sup>[2]</sup></span>
+      <span>ŷ = a₁<sup>[2]</sup> = g(z₁<sup>[2]</sup>)</span>
+    </div>
+    <div class="eq-note">Same two-step formula. The only change is that the inputs are now a₁⁽¹⁾…a₄⁽¹⁾ instead of x₁…x₃. The output of the last layer is the final prediction ŷ.</div>
+  </div>
+
+  <h3>Tracing the Complete Forward Pass End-to-End</h3>
+
+  <div class="diagram-card">
+  <svg width="100%" viewBox="0 0 820 400" role="img">
+    <title>Complete forward pass flow from input x through layer 1 to layer 2 and final output yhat</title>
+    <defs>
+      <marker id="nn-a5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- ── Box 1: Input x ── -->
+    <rect x="10" y="130" width="118" height="120" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="69" y="158" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">Input x</text>
+    <text x="69" y="180" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#1d4ed8">x&#x2081;</text>
+    <text x="69" y="200" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#1d4ed8">x&#x2082;</text>
+    <text x="69" y="220" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#1d4ed8">x&#x2083;</text>
+    <!-- a[0] label: "a" then superscript "[0]" -->
+    <text x="69" y="242" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">
+      = a<tspan dy="-4" font-size="8">[0]</tspan>
+    </text>
+
+    <!-- ── Arrow 1 ── -->
+    <line x1="128" y1="190" x2="182" y2="190" stroke="#8a8680" stroke-width="1.5" marker-end="url(#nn-a5)"/>
+
+    <!-- ── Box 2: Layer 1 ── -->
+    <rect x="184" y="30" width="258" height="330" rx="12" fill="#fef6f4" stroke="#c84b2f" stroke-width="2"/>
+
+    <!-- Layer 1 title -->
+    <text x="313" y="58" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#c84b2f">Layer 1 — Hidden</text>
+
+    <!-- z[1] inner box -->
+    <rect x="200" y="70" width="226" height="66" rx="6" fill="#ffffff" stroke="#e8e5df" stroke-width="1"/>
+    <!-- z[1] = W[1] . x + b[1] with proper superscripts -->
+    <text x="313" y="96" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="600" fill="#c84b2f">
+      z<tspan dy="-5" font-size="9">[1]</tspan><tspan dy="5"> = W</tspan><tspan dy="-5" font-size="9">[1]</tspan><tspan dy="5"> . x + b</tspan><tspan dy="-5" font-size="9">[1]</tspan>
+    </text>
+    <text x="313" y="116" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8a8680">
+      W<tspan dy="-3" font-size="8">[1]</tspan><tspan dy="3">: 4&#xD7;3 &nbsp; b</tspan><tspan dy="-3" font-size="8">[1]</tspan><tspan dy="3">: 4&#xD7;1 &nbsp; z</tspan><tspan dy="-3" font-size="8">[1]</tspan><tspan dy="3">: 4&#xD7;1</tspan>
+    </text>
+    <text x="313" y="128" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8a8680">(one row per neuron)</text>
+
+    <!-- arrow down -->
+    <text x="313" y="154" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">&#x2193; apply sigmoid to each element</text>
+
+    <!-- a[1] inner box -->
+    <rect x="200" y="162" width="226" height="52" rx="6" fill="#ffffff" stroke="#e8e5df" stroke-width="1"/>
+    <text x="313" y="185" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="600" fill="#059669">
+      a<tspan dy="-5" font-size="9">[1]</tspan><tspan dy="5"> = g( z</tspan><tspan dy="-5" font-size="9">[1]</tspan><tspan dy="5"> )</tspan>
+    </text>
+    <text x="313" y="204" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8a8680">
+      a<tspan dy="-3" font-size="8">[1]</tspan><tspan dy="3">: 4&#xD7;1 — 4 activations</tspan>
+    </text>
+
+    <!-- What's inside box -->
+    <rect x="200" y="224" width="226" height="118" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1"/>
+    <text x="313" y="244" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" font-weight="700" fill="#7c3aed">
+      What is inside a<tspan dy="-4" font-size="8">[1]</tspan><tspan dy="4">?</tspan>
+    </text>
+    <text x="313" y="264" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a4740">a&#x2081; = g(w&#x2081;&#x2081;x&#x2081; + w&#x2081;&#x2082;x&#x2082; + w&#x2081;&#x2083;x&#x2083; + b&#x2081;)</text>
+    <text x="313" y="282" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a4740">a&#x2082; = g(w&#x2082;&#x2081;x&#x2081; + w&#x2082;&#x2082;x&#x2082; + w&#x2082;&#x2083;x&#x2083; + b&#x2082;)</text>
+    <text x="313" y="300" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a4740">a&#x2083; = g(w&#x2083;&#x2081;x&#x2081; + w&#x2083;&#x2082;x&#x2082; + w&#x2083;&#x2083;x&#x2083; + b&#x2083;)</text>
+    <text x="313" y="318" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#4a4740">a&#x2084; = g(w&#x2084;&#x2081;x&#x2081; + w&#x2084;&#x2082;x&#x2082; + w&#x2084;&#x2083;x&#x2083; + b&#x2084;)</text>
+    <text x="313" y="334" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#7c3aed">each neuron uses its own row of W<tspan dy="-3" font-size="8">[1]</tspan></text>
+
+    <!-- ── Arrow 2 ── -->
+    <line x1="442" y1="190" x2="496" y2="190" stroke="#8a8680" stroke-width="1.5" marker-end="url(#nn-a5)"/>
+
+    <!-- ── Box 3: Layer 2 ── -->
+    <rect x="498" y="90" width="224" height="210" rx="12" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+
+    <!-- Layer 2 title -->
+    <text x="610" y="118" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#059669">Layer 2 — Output</text>
+
+    <!-- z[2] inner box -->
+    <rect x="514" y="130" width="192" height="60" rx="6" fill="#ffffff" stroke="#e8e5df" stroke-width="1"/>
+    <text x="610" y="154" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="600" fill="#c84b2f">
+      z<tspan dy="-5" font-size="9">[2]</tspan><tspan dy="5"> = W</tspan><tspan dy="-5" font-size="9">[2]</tspan><tspan dy="5">.a</tspan><tspan dy="-5" font-size="9">[1]</tspan><tspan dy="5"> + b</tspan><tspan dy="-5" font-size="9">[2]</tspan>
+    </text>
+    <text x="610" y="174" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8a8680">
+      W<tspan dy="-3" font-size="8">[2]</tspan><tspan dy="3">: 1&#xD7;4 &nbsp; b</tspan><tspan dy="-3" font-size="8">[2]</tspan><tspan dy="3">: 1&#xD7;1</tspan>
+    </text>
+
+    <!-- arrow down -->
+    <text x="610" y="208" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">&#x2193; sigmoid</text>
+
+    <!-- yhat inner box -->
+    <rect x="514" y="216" width="192" height="62" rx="6" fill="#ffffff" stroke="#e8e5df" stroke-width="1"/>
+    <text x="610" y="240" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="600" fill="#059669">
+      &#x0177; = a<tspan dy="-5" font-size="9">[2]</tspan><tspan dy="5"> = g(z</tspan><tspan dy="-5" font-size="9">[2]</tspan><tspan dy="5">)</tspan>
+    </text>
+    <text x="610" y="260" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8a8680">scalar &#x2208; (0, 1)</text>
+    <text x="610" y="274" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#059669">final prediction</text>
+
+    <!-- ── Arrow 3 ── -->
+    <line x1="722" y1="195" x2="790" y2="195" stroke="#059669" stroke-width="2" marker-end="url(#nn-a5)"/>
+    <text x="803" y="202" text-anchor="middle" font-family="DM Mono,monospace" font-size="20" font-weight="700" fill="#059669">&#x0177;</text>
+
+    <!-- ── Step labels at bottom ── -->
+    <text x="69"  y="385" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">Step 0</text>
+    <text x="313" y="385" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">Step 1</text>
+    <text x="610" y="385" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">Step 2</text>
+    <line x1="128" y1="381" x2="182" y2="381" stroke="#e8e5df" stroke-width="1" marker-end="url(#nn-a5)"/>
+    <line x1="442" y1="381" x2="496" y2="381" stroke="#e8e5df" stroke-width="1" marker-end="url(#nn-a5)"/>
+
+  </svg>
+  <figcaption>Figure 5 — The complete forward pass. Starting from input x (= <strong>a</strong><sup>[0]</sup>), layer 1 computes z<sup>[1]</sup> = W<sup>[1]</sup>x + b<sup>[1]</sup> then <strong>a</strong><sup>[1]</sup> = g(z<sup>[1]</sup>). Layer 2 then uses <strong>a</strong><sup>[1]</sup> as its input, computing z<sup>[2]</sup> = W<sup>[2]</sup><strong>a</strong><sup>[1]</sup> + b<sup>[2]</sup>, and finally ŷ = g(z<sup>[2]</sup>).</figcaption>
+</div>
+
+  <div class="callout green">
+    <div class="callout-title">✅ The Pattern — Each Layer Follows the Same Two Steps</div>
+    <p>Every single layer l in the network computes exactly the same pair of equations. Only the layer index changes:</p>
+  </div>
+
+  <div class="eq-block">
+    <span class="eq-label">Forward pass equations for layer l — the general rule</span>
+    <div class="eq-main" style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+      <span><strong>z</strong><sup>[l]</sup> = W<sup>[l]</sup> · <strong>a</strong><sup>[l−1]</sup> + <strong>b</strong><sup>[l]</sup></span>
+      <span><strong>a</strong><sup>[l]</sup> = g(<strong>z</strong><sup>[l]</sup>)</span>
+    </div>
+    <div class="eq-note">Start with <strong>a</strong><sup>[0]</sup> = x. Repeat for l = 1, 2, …, L. The final result <strong>a</strong><sup>[L]</sup> = ŷ.</div>
+  </div>
+
+  <p>To produce ŷ from a new input x, run this two-equation pair L times — once per layer. That is the entire forward pass algorithm.</p>
+</section>
+
+<!-- ══ SECTION 7: VECTORISED FORWARD PASS ══ -->
+<section class="section" id="s7">
+  <div class="section-label">Section 07</div>
+  <h2>Vectorised Forward Pass — From One Example to All m at Once</h2>
+  
+
+  <p>So far the forward pass equations describe computing ŷ for a <strong>single training example x</strong>. In practice we always want to compute ŷ for all m training examples simultaneously. We do this by stacking all examples into a matrix — exactly as Module 2.1 did with the feature matrix X.</p>
+
+  <h3>Stacking Examples Into a Matrix</h3>
+  <p>Instead of one column vector x ∈ ℝ<sup>n×1</sup>, we form the matrix X by placing all m examples side by side as columns:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Input matrix X — all m examples at once</span>
+    <div class="eq-main">X = [x<sup>(1)</sup> | x<sup>(2)</sup> | … | x<sup>(m)</sup>] &nbsp; ∈ ℝ<sup>n × m</sup></div>
+    <div class="eq-note">Each column is one training example. X has n rows (features) and m columns (examples). This is a transpose of how Module 2 stacked examples — here columns are examples, not rows. Andrew Ng uses this convention for neural networks.</div>
+  </div>
+
+  <div class="callout blue">
+    <div class="callout-title">📌 Notation difference from Module 2</div>
+    <p>In Module 2, the feature matrix had shape (m × n) with each <strong>row</strong> being one example. In neural networks, Andrew Ng uses shape (n × m) with each <strong>column</strong> being one example. This is a convention choice — it makes the layer equations cleaner. Either convention is valid; just be consistent.</p>
+  </div>
+
+  <h3>The Vectorised Forward Pass Equations</h3>
+  <p>With X ∈ ℝ<sup>n×m</sup>, the forward pass for all m examples simultaneously uses <strong>exactly the same two equations per layer</strong> — just with matrices instead of vectors:</p>
+
+  <div class="eq-block">
+    <span class="eq-label">Vectorised forward pass for layer l — all m examples at once</span>
+    <div class="eq-main" style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+      <span>Z<sup>[l]</sup> = W<sup>[l]</sup> · A<sup>[l−1]</sup> + b<sup>[l]</sup></span>
+      <span>A<sup>[l]</sup> = g(Z<sup>[l]</sup>)</span>
+    </div>
+    <div class="eq-note">Capital letters denote matrices over all m examples. Z<sup>[l]</sup> and A<sup>[l]</sup> both have shape (n<sup>[l]</sup> × m). Start with A<sup>[0]</sup> = X. The final A<sup>[L]</sup> has shape (1 × m) — one prediction per example.</div>
+  </div>
+
+  <h3>Visualising the Shapes</h3>
+  <p>Let's verify the matrix dimensions are consistent for our 3-input, 4-hidden, 1-output network with m training examples:</p>
+
+  <div class="diagram-card">
+    <svg width="100%" viewBox="0 0 820 270" role="img">
+      <title>Matrix multiplication dimension check for vectorised forward pass through two layers</title>
+      <defs>
+        <marker id="nn-a6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#8a8680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Layer 1 computation row -->
+      <text x="400" y="26" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#c84b2f">Layer 1</text>
+
+      <!-- W[1] -->
+      <rect x="20" y="48" width="90" height="72" rx="6" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="65" y="78" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#c84b2f" font-weight="600">W⁽¹⁾</text>
+      <text x="65" y="104" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">(4 × 3)</text>
+
+      <text x="126" y="87" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="18" fill="#8a8680">·</text>
+
+      <!-- A[0] = X -->
+      <rect x="140" y="48" width="90" height="72" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="185" y="78" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#1d4ed8" font-weight="600">A⁽⁰⁾</text>
+      <text x="185" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8a8680">= X</text>
+      <text x="185" y="110" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">(3 × m)</text>
+
+      <text x="246" y="87" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="18" fill="#8a8680">+</text>
+
+      <!-- b[1] -->
+      <rect x="260" y="48" width="90" height="72" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="305" y="78" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#7c3aed" font-weight="600">b⁽¹⁾</text>
+      <text x="305" y="96" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="10" fill="#8a8680">broadcast</text>
+      <text x="305" y="110" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">(4 × 1)</text>
+
+      <text x="366" y="87" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="18" fill="#8a8680">=</text>
+
+      <!-- Z[1] -->
+      <rect x="380" y="48" width="90" height="72" rx="6" fill="#fef6f4" stroke="#c84b2f" stroke-width="1.5"/>
+      <text x="425" y="78" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#c84b2f" font-weight="600">Z⁽¹⁾</text>
+      <text x="425" y="110" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">(4 × m)</text>
+
+      <text x="487" y="87" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="14" fill="#8a8680">→ g(·) →</text>
+
+      <!-- A[1] -->
+      <rect x="530" y="48" width="90" height="72" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="575" y="78" text-anchor="middle" font-family="DM Mono,monospace" font-size="14" fill="#059669" font-weight="600">A⁽¹⁾</text>
+      <text x="575" y="110" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#8a8680">(4 × m)</text>
+
+      <!-- Inner dim check layer 1 -->
+      <path d="M 108 130 Q 185 148 262 130" fill="none" stroke="#c84b2f" stroke-width="1.2" opacity="0.7"/>
+      <text x="185" y="164" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#c84b2f">3 = 3 ✓</text>
+
+      <!-- Layer 2 computation row -->
+      <text x="400" y="210" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="13" font-weight="700" fill="#059669">Layer 2</text>
+
+      <!-- W[2] -->
+      <rect x="20" y="228" width="90" height="24" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="65" y="245" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">W⁽²⁾  (1×4)</text>
+
+      <text x="126" y="242" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="16" fill="#8a8680">·</text>
+
+      <!-- A[1] feed in -->
+      <rect x="140" y="228" width="90" height="24" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="185" y="245" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">A⁽¹⁾  (4×m)</text>
+
+      <text x="246" y="242" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="16" fill="#8a8680">+</text>
+
+      <rect x="260" y="228" width="90" height="24" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="305" y="245" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#7c3aed">b⁽²⁾  (1×1)</text>
+
+      <text x="366" y="242" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="16" fill="#8a8680">=</text>
+
+      <rect x="380" y="228" width="90" height="24" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+      <text x="425" y="245" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669">Z⁽²⁾  (1×m)</text>
+
+      <text x="487" y="242" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="12" fill="#8a8680">→ g(·) →</text>
+
+      <rect x="530" y="228" width="120" height="24" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+      <text x="590" y="245" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#059669" font-weight="600">Ŷ = A⁽²⁾  (1×m)</text>
+
+      <!-- Inner dim check layer 2 -->
+      <path d="M 108 258 Q 185 272 262 258" fill="none" stroke="#059669" stroke-width="1.2" opacity="0.7"/>
+      <text x="185" y="262" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#059669">4 = 4 ✓</text>
+    </svg>
+    <figcaption>Figure 6 — Dimension check for the vectorised forward pass. Layer 1: (4×3)·(3×m) = (4×m). Layer 2: (1×4)·(4×m) = (1×m). The inner dimensions always match, and the output Ŷ has shape (1×m) — one prediction per training example.</figcaption>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-title">✅ Why vectorise?</div>
+    <p>Computing the forward pass for all m examples simultaneously using matrix multiplication is vastly faster than looping over examples one at a time — for the same reason we used NumPy's <code>@</code> operator in Implementation 1. Modern hardware (GPUs) can multiply large matrices extremely fast. This is why neural networks, despite having millions of parameters, can be trained in reasonable time.</p>
+  </div>
+</section>
+
+<!-- ══ SECTION 8: SUMMARY ══ -->
+<section class="section" id="s8">
+  <div class="section-label">Section 08</div>
+  <h2>Module 4.1 — Complete Summary</h2>
+
+  <p>Let's bring everything together in one place. A neural network is an extension of Module 3's logistic regression — same building blocks, stacked into layers.</p>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="s-icon">🧠</div>
+      <div class="s-title">Why Neural Networks</div>
+      <div class="s-desc">Hand-crafting polynomial features fails for large n. Neural networks learn their own features automatically, layer by layer.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">⚡</div>
+      <div class="s-title">The Neuron</div>
+      <div class="s-desc">One neuron = one logistic unit. Computes z = wᵀx + b then a = g(z). Same as Module 3, just renamed to "activation" a.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">🏗️</div>
+      <div class="s-title">Layers</div>
+      <div class="s-desc">Layer 0 = inputs x. Hidden layers (1…L−1) learn intermediate features. Output layer L produces ŷ.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">📐</div>
+      <div class="s-title">Notation</div>
+      <div class="s-desc">a<sub>j</sub><sup>[l]</sup> = unit j activation of layer l. W<sup>[l]</sup> ∈ ℝ<sup>n[l]×n[l-1]</sup>. b<sup>[l]</sup> ∈ ℝ<sup>n[l]×1</sup>.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">➡️</div>
+      <div class="s-title">Forward Pass</div>
+      <div class="s-desc">Two equations per layer — z<sup>[l]</sup> = W<sup>[l]</sup>a<sup>[l-1]</sup>+b<sup>[l]</sup>, then a<sup>[l]</sup>=g(z<sup>[l]</sup>). Repeat l=1,2,…,L. Output is ŷ = a<sup>[L]</sup>.</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-icon">⚡</div>
+      <div class="s-title">Vectorisation</div>
+      <div class="s-desc">Stack all m examples into X∈ℝ<sup>n×m</sup>. Same two equations give Z<sup>[l]</sup> and A<sup>[l]</sup> — all examples at once.</div>
+    </div>
+  </div>
+
+  <div class="eq-block" style="margin-top:36px;">
+    <span class="eq-label">Module 4.1 in three lines</span>
+    <div style="font-family:var(--mono);font-size:1rem;color:var(--ink);text-align:left;line-height:2.5;">
+      <div>A<sup>[0]</sup> = X &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;font-family:var(--sans);">← input to the network</span></div>
+      <div><strong>for</strong> l = 1 to L: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;font-family:var(--sans);">← repeat for each layer</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;Z<sup>[l]</sup> = W<sup>[l]</sup> · A<sup>[l−1]</sup> + b<sup>[l]</sup> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;font-family:var(--sans);">← linear step</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;A<sup>[l]</sup> = g(Z<sup>[l]</sup>) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;font-family:var(--sans);">← activation step</span></div>
+      <div>ŷ = A<sup>[L]</sup> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink3);font-size:12px;font-family:var(--sans);">← final prediction</span></div>
+    </div>
+  </div>
+
+  <div class="callout blue" style="margin-top:32px;">
+    <div class="callout-title">⏭️ What Comes Next</div>
+    <p>Module 4.2 will cover: how we train the network — i.e., how we find the right W<sup>[l]</sup> and b<sup>[l]</sup> for all layers. This requires computing the gradient of J with respect to all parameters, which needs a powerful algorithm called <strong>backpropagation</strong>. We'll also see why sigmoid is sometimes not the best activation function, and meet ReLU — the most popular activation function used in modern deep learning.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Module 4.1 — Neural Networks &amp; Forward Pass &nbsp;·&nbsp; Notation consistent with Module 2, 2.1, and 3 &nbsp;·&nbsp; Inspired by Andrew Ng's Machine Learning Specialisation</p>
+</footer>
+
+</div>
+</body>
+</html>
